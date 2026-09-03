@@ -1,9 +1,9 @@
 import { Client } from '@notionhq/client';
 
 export const NOTION_DATABASE_IDS = {
-  STUDENTS: process.env.NOTION_STUDENTS_DATABASE_ID || '164f946d-c40d-4f80-bd89-d37ca8f525b6',
-  FEE_RECORDS: process.env.NOTION_FEE_RECORDS_DATABASE_ID || 'f1c9ff42-549a-49de-9325-83c7e4ac8527',
-  PAYMENTS: process.env.NOTION_PAYMENTS_DATABASE_ID || '67d7ede3-e368-4855-a121-e2cf8064c187',
+  STUDENTS: process.env.NOTION_STUDENTS_DATABASE_ID || '24da4cc5-aab0-4c0b-a7d2-2aa6cd42cd05',
+  FEE_RECORDS: process.env.NOTION_FEE_RECORDS_DATABASE_ID || '590b5d2c-962a-46bf-9a49-b15f831b25f6',
+  PAYMENTS: process.env.NOTION_PAYMENTS_DATABASE_ID || '9f072bb8-6dbc-48b3-be36-ca66c6cd0aa4',
 };
 
 let notionClient: Client | null = null;

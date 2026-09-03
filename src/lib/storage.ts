@@ -52,6 +52,8 @@ export function getStudents(): Student[] {
   }
 }
 
+import { NotionService } from './notion/service';
+
 export function saveStudents(students: Student[]): void {
   if (typeof window === 'undefined') return;
   localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(students));
@@ -69,12 +71,16 @@ export function addStudent(studentData: Omit<Student, 'id' | 'createdAt' | 'upda
   students.push(newStudent);
   saveStudents(students);
 
+  // Sync to Notion asynchronously
+  NotionService.syncStudent(newStudent);
+
   // Automatically generate fee record for current month
   const currentMonthStr = getYearMonthString(new Date());
   ensureFeeRecordsForMonth(currentMonthStr);
 
   return newStudent;
 }
+
 
 export function updateStudent(id: string, updates: Partial<Student>): Student | null {
   const students = getStudents();
@@ -286,7 +292,12 @@ export function recordPayment(params: {
   payments.unshift(newPayment);
   savePayments(payments);
 
+  // Sync to Notion asynchronously
+  const student = getStudents().find((s) => s.id === params.studentId);
+  NotionService.syncPayment(newPayment, student?.name);
+
   return { payment: newPayment, updatedFeeRecord: updatedRecord };
+
 }
 
 // Export / Import
