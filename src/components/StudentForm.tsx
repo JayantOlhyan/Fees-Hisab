@@ -2,22 +2,10 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { StudentCreateInput } from '@/lib/validations';
+import { StudentCreateInput, ALLOWED_SUBJECTS } from '@/lib/validations';
 import { createStudentAction, updateStudentAction } from '@/actions/student.actions';
-import { AlertCircle, CheckCircle2, ArrowLeft, Loader2 } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import Link from 'next/link';
-
-const AVAILABLE_SUBJECTS = [
-  'Mathematics',
-  'Science',
-  'English',
-  'Social Science',
-  'Hindi',
-  'Physics',
-  'Chemistry',
-  'Biology',
-  'Other',
-];
 
 interface StudentFormProps {
   initialData?: {
@@ -25,7 +13,7 @@ interface StudentFormProps {
     name: string;
     guardianName?: string | null;
     phone?: string | null;
-    className: string;
+    className?: string | null;
     school?: string | null;
     subjects: string[];
     monthlyFee: number | string;
@@ -42,11 +30,9 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
   const [name, setName] = useState(initialData?.name || '');
   const [guardianName, setGuardianName] = useState(initialData?.guardianName || '');
   const [phone, setPhone] = useState(initialData?.phone || '');
-  const [className, setClassName] = useState(initialData?.className || 'Class 8');
+  const [className, setClassName] = useState(initialData?.className || '');
   const [school, setSchool] = useState(initialData?.school || '');
-  const [selectedSubjects, setSelectedSubjects] = useState<string[]>(
-    initialData?.subjects || ['Mathematics', 'Science']
-  );
+  const [selectedSubjects, setSelectedSubjects] = useState<string[]>(initialData?.subjects || []);
   const [monthlyFee, setMonthlyFee] = useState(
     initialData?.monthlyFee ? String(initialData.monthlyFee) : '2000'
   );
@@ -83,9 +69,9 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
       name: name.trim(),
       guardianName: guardianName.trim() || undefined,
       phone: phone.trim() || undefined,
-      className: className.trim(),
+      className: className.trim() || undefined,
       school: school.trim() || undefined,
-      subjects: selectedSubjects.length > 0 ? selectedSubjects : ['Other'],
+      subjects: selectedSubjects,
       monthlyFee: feeNum,
       feeDueDay: dueDayNum,
       joiningDate,
@@ -155,10 +141,11 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
         </h2>
 
         <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1">
+          <label htmlFor="student-name" className="block text-xs font-bold text-slate-700 mb-1">
             Student Full Name <span className="text-red-500">*</span>
           </label>
           <input
+            id="student-name"
             type="text"
             required
             value={name}
@@ -171,12 +158,12 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
-              Class / Grade <span className="text-red-500">*</span>
+            <label htmlFor="student-class" className="block text-xs font-bold text-slate-700 mb-1">
+              Class / Grade (Optional)
             </label>
             <input
+              id="student-class"
               type="text"
-              required
               value={className}
               onChange={(e) => setClassName(e.target.value)}
               placeholder="e.g. Class 8 or 10th"
@@ -188,8 +175,11 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">School Name</label>
+            <label htmlFor="student-school" className="block text-xs font-bold text-slate-700 mb-1">
+              School Name (Optional)
+            </label>
             <input
+              id="student-school"
               type="text"
               value={school}
               onChange={(e) => setSchool(e.target.value)}
@@ -199,13 +189,13 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
           </div>
         </div>
 
-        {/* Subjects Multi-select */}
+        {/* Subjects Multi-select (Optional per Phase 2 contract) */}
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-2">
-            Subjects Taught <span className="text-red-500">*</span>
+            Subjects Taught (Optional)
           </label>
           <div className="flex flex-wrap gap-2">
-            {AVAILABLE_SUBJECTS.map((sub) => {
+            {ALLOWED_SUBJECTS.map((sub) => {
               const isSelected = selectedSubjects.includes(sub);
               return (
                 <button
@@ -237,10 +227,14 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
-              Parent / Guardian Name
+            <label
+              htmlFor="student-guardian"
+              className="block text-xs font-bold text-slate-700 mb-1"
+            >
+              Parent / Guardian Name (Optional)
             </label>
             <input
+              id="student-guardian"
               type="text"
               value={guardianName}
               onChange={(e) => setGuardianName(e.target.value)}
@@ -250,8 +244,11 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">Contact Phone</label>
+            <label htmlFor="student-phone" className="block text-xs font-bold text-slate-700 mb-1">
+              Contact Phone (Optional)
+            </label>
             <input
+              id="student-phone"
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -265,7 +262,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
         </div>
       </div>
 
-      {/* Section 3: Fee Setup */}
+      {/* Section 3: Fee Setup (Required) */}
       <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs space-y-4">
         <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
           Fee Configuration
@@ -273,7 +270,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
+            <label htmlFor="student-fee" className="block text-xs font-bold text-slate-700 mb-1">
               Monthly Fee (₹) <span className="text-red-500">*</span>
             </label>
             <div className="relative">
@@ -281,6 +278,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
                 ₹
               </span>
               <input
+                id="student-fee"
                 type="number"
                 step="any"
                 required
@@ -296,11 +294,15 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
+            <label
+              htmlFor="student-due-day"
+              className="block text-xs font-bold text-slate-700 mb-1"
+            >
               Fee Due Day <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <input
+                id="student-due-day"
                 type="number"
                 min="1"
                 max="31"
@@ -320,10 +322,14 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
+            <label
+              htmlFor="student-joining-date"
+              className="block text-xs font-bold text-slate-700 mb-1"
+            >
               Joining Date <span className="text-red-500">*</span>
             </label>
             <input
+              id="student-joining-date"
               type="date"
               required
               value={joiningDate}
@@ -344,8 +350,11 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
         </h2>
 
         <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1">Notes (Optional)</label>
+          <label htmlFor="student-notes" className="block text-xs font-bold text-slate-700 mb-1">
+            Notes (Optional)
+          </label>
           <textarea
+            id="student-notes"
             rows={3}
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
