@@ -117,14 +117,15 @@ export default function SettingsPage() {
 
   const handleResetData = () => {
     const confirmed = confirm(
-      'Reset all data back to original sample demo records? Any new changes will be replaced.'
+      'Are you sure you want to clear all data and start fresh? All local records will be cleared.'
     );
     if (confirmed) {
       resetToSeedData();
-      alert('Demo data restored!');
+      alert('All data has been cleared!');
       window.location.reload();
     }
   };
+
 
   if (!mounted) return null;
 
@@ -283,22 +284,23 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Section 3: Reset Demo Data */}
+        {/* Section 3: Reset App Data */}
         <div className="mt-6 bg-white rounded-2xl border border-slate-200/80 p-5 shadow-2xs">
           <h2 className="font-bold text-sm text-slate-900 flex items-center gap-2 mb-2">
             <RefreshCw className="w-4 h-4 text-slate-600" />
-            Sample Demo Data
+            Clear All Data
           </h2>
           <p className="text-xs text-slate-500 mb-3">
-            Want to see how the app looks with sample students (Rahul Sharma, Ananya Gupta, etc.)?
+            Clear all students, fee records, and payment history to start with a clean state.
           </p>
           <button
             onClick={handleResetData}
             className="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 font-bold text-xs rounded-xl transition"
           >
-            Reset to Sample Tuition Data
+            Clear All Data
           </button>
         </div>
+
       </main>
     </div>
   );
