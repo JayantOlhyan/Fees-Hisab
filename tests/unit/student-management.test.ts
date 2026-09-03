@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { StudentService } from '@/services/students/student.service';
-import { studentCreateSchema, studentUpdateSchema } from '@/lib/validations';
-import { AuthorizationError, NotFoundError, ValidationError } from '@/lib/errors';
+import { studentCreateSchema } from '@/lib/validations';
+import { AuthorizationError } from '@/lib/errors';
 import { prisma } from '@/lib/db/prisma';
 import { Decimal } from '@prisma/client/runtime/library';
 
@@ -24,8 +24,8 @@ describe('Phase 2 — Student Management Unit & Service Tests', () => {
     vi.clearAllMocks();
   });
 
-  describe('Validation Suite (19 Required Cases)', () => {
-    // 1. Create valid student
+  describe('Validation Suite (Phase 2 Contract: Required: name, monthlyFee, joiningDate, feeDueDay; Optional: className, subjects, phone, guardian, school, notes)', () => {
+    // 1. Create valid student with full payload
     it('1. Validates a complete student creation payload', () => {
       const result = studentCreateSchema.safeParse({
         name: 'Rahul Sharma',
@@ -42,7 +42,7 @@ describe('Phase 2 — Student Management Unit & Service Tests', () => {
       expect(result.success).toBe(true);
     });
 
-    // 2. Reject invalid student
+    // 2. Reject invalid student (missing required name)
     it('2. Rejects student when required fields are missing', () => {
       const result = studentCreateSchema.safeParse({
         guardianName: 'Suresh Sharma',
@@ -54,8 +54,6 @@ describe('Phase 2 — Student Management Unit & Service Tests', () => {
     it('3. Rejects zero monthly fee', () => {
       const result = studentCreateSchema.safeParse({
         name: 'Rahul Sharma',
-        className: '8th',
-        subjects: ['Maths'],
         monthlyFee: 0,
         feeDueDay: 5,
         joiningDate: '2026-04-01',
@@ -67,8 +65,6 @@ describe('Phase 2 — Student Management Unit & Service Tests', () => {
     it('4. Rejects negative monthly fee', () => {
       const result = studentCreateSchema.safeParse({
         name: 'Rahul Sharma',
-        className: '8th',
-        subjects: ['Maths'],
         monthlyFee: -500,
         feeDueDay: 5,
         joiningDate: '2026-04-01',
@@ -81,8 +77,6 @@ describe('Phase 2 — Student Management Unit & Service Tests', () => {
       expect(
         studentCreateSchema.safeParse({
           name: 'Rahul Sharma',
-          className: '8th',
-          subjects: ['Maths'],
           monthlyFee: 2000,
           feeDueDay: 32,
           joiningDate: '2026-04-01',
@@ -92,8 +86,6 @@ describe('Phase 2 — Student Management Unit & Service Tests', () => {
       expect(
         studentCreateSchema.safeParse({
           name: 'Rahul Sharma',
-          className: '8th',
-          subjects: ['Maths'],
           monthlyFee: 2000,
           feeDueDay: 0,
           joiningDate: '2026-04-01',
@@ -101,25 +93,26 @@ describe('Phase 2 — Student Management Unit & Service Tests', () => {
       ).toBe(false);
     });
 
-    // 6. Accept optional fields
-    it('6. Accepts student without optional guardianName, phone, school, notes', () => {
+    // 6. Accept optional fields (className and subjects are optional in Phase 2)
+    it('6. Accepts student without optional guardianName, phone, className, school, subjects, notes', () => {
       const result = studentCreateSchema.safeParse({
         name: 'Rahul Sharma',
-        className: '8th',
-        subjects: ['Maths'],
         monthlyFee: 2000,
         feeDueDay: 5,
         joiningDate: '2026-04-01',
       });
       expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.className).toBeUndefined();
+        expect(result.data.subjects).toEqual([]);
+      }
     });
 
     // 7. Trim appropriate text fields
-    it('7. Trims whitespace from name and class', () => {
+    it('7. Trims whitespace from name and className', () => {
       const result = studentCreateSchema.safeParse({
         name: '   Rahul Sharma   ',
         className: '  Class 8   ',
-        subjects: ['Maths'],
         monthlyFee: 2000,
         feeDueDay: 5,
         joiningDate: '2026-04-01',
@@ -141,7 +134,7 @@ describe('Phase 2 — Student Management Unit & Service Tests', () => {
       phone: '9876543210',
       className: '8th',
       school: 'DAV Public School',
-      subjects: ['Maths', 'Science'],
+      subjects: ['Mathematics', 'Science'],
       monthlyFee: new Decimal(2000),
       feeDueDay: 5,
       joiningDate: new Date('2026-04-01'),
@@ -265,6 +258,7 @@ describe('Phase 2 — Student Management Unit & Service Tests', () => {
       expect(list[0].status).toBe('ARCHIVED');
     });
 
+    // 18. Historical fields remain untouched by normal student update
     it('18. Updates only current configuration without mutating createdAt or userId', async () => {
       vi.mocked(prisma.student.findUnique).mockResolvedValueOnce(mockStudentA);
       vi.mocked(prisma.student.update).mockResolvedValueOnce({
