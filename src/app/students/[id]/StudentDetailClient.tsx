@@ -123,7 +123,7 @@ export const StudentDetailClient: React.FC<StudentDetailClientProps> = ({
         </div>
       )}
 
-      {/* Profile Card Header (Exact to Provided Mockup) */}
+      {/* Profile Card Header */}
       <div className="bg-white rounded-3xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -192,6 +192,7 @@ export const StudentDetailClient: React.FC<StudentDetailClientProps> = ({
         <div className="flex items-center gap-2 mt-6 pt-5 border-t border-slate-100 overflow-x-auto scrollbar-none">
           <button
             type="button"
+            id="tab-details"
             onClick={() => setActiveTab('DETAILS')}
             className={`px-4 py-1.5 rounded-xl text-xs font-bold transition ${
               activeTab === 'DETAILS'
@@ -203,6 +204,8 @@ export const StudentDetailClient: React.FC<StudentDetailClientProps> = ({
           </button>
           <button
             type="button"
+            id="tab-payments"
+            data-testid="tab-payments"
             onClick={() => setActiveTab('PAYMENTS')}
             className={`px-4 py-1.5 rounded-xl text-xs font-bold transition flex items-center gap-1.5 ${
               activeTab === 'PAYMENTS'
@@ -223,7 +226,7 @@ export const StudentDetailClient: React.FC<StudentDetailClientProps> = ({
         </div>
       </div>
 
-      {activeTab === 'DETAILS' ? (
+      {activeTab === 'DETAILS' && (
         /* 2-Column Detail Cards Grid (Matches Mockup) */
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Card 1: Student Information */}
@@ -323,7 +326,9 @@ export const StudentDetailClient: React.FC<StudentDetailClientProps> = ({
             </div>
           </div>
         </div>
-      ) : (
+      )}
+
+      {activeTab === 'PAYMENTS' && (
         /* Payments Tab Content */
         <div className="space-y-4">
           <div className="bg-white rounded-2xl border border-slate-200/80 p-4 shadow-2xs flex items-center justify-between">
