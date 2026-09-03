@@ -7,6 +7,8 @@ export const metadata: Metadata = {
     'Simple, fast, and accurate tuition fee management for individual teachers. Har Fee. Har Student. Pure Hisab.',
   icons: {
     icon: '/logo.jpg',
+    shortcut: '/favicon.ico',
+    apple: '/logo.jpg',
   },
   manifest: '/manifest.json',
 };
