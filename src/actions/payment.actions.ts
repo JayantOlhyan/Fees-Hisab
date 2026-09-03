@@ -1,27 +1,29 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { PaymentService, PaymentResult } from '@/services/payments/payment.service';
-import { PaymentRecordInput } from '@/lib/validations';
-import { sanitizeError } from '@/lib/errors';
-import { requireAuth } from '@/lib/auth/session';
-import { Payment } from '@prisma/client';
+import { recordPayment, getPayments } from '@/lib/notion/service';
+import { Payment, PaymentMethod } from '@/types';
 
 export type PaymentActionResult<T> =
-  { success: true; data: T } | { success: false; error: string; code: string; details?: unknown };
+  | { success: true; data: T }
+  | { success: false; error: string };
 
-export async function recordPaymentAction(
-  input: PaymentRecordInput
-): Promise<PaymentActionResult<PaymentResult>> {
+export async function recordPaymentAction(input: {
+  studentId: string;
+  feeRecordId: string;
+  studentName: string;
+  amount: number;
+  paymentDate: string;
+  paymentMethod: PaymentMethod;
+  notes?: string;
+}): Promise<PaymentActionResult<Payment>> {
   try {
-    const session = await requireAuth();
-    const result = await PaymentService.recordPayment(session.userId, input);
+    const payment = await recordPayment(input);
     revalidatePath('/fees');
     revalidatePath(`/students/${input.studentId}`);
-    return { success: true, data: result };
-  } catch (error) {
-    const sanitized = sanitizeError(error);
-    return { success: false, ...sanitized };
+    return { success: true, data: payment };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to record payment' };
   }
 }
 
@@ -29,24 +31,9 @@ export async function getPaymentsForStudentAction(
   studentId: string
 ): Promise<PaymentActionResult<Payment[]>> {
   try {
-    const session = await requireAuth();
-    const payments = await PaymentService.getPaymentsForStudent(session.userId, studentId);
+    const payments = await getPayments(studentId);
     return { success: true, data: payments };
-  } catch (error) {
-    const sanitized = sanitizeError(error);
-    return { success: false, ...sanitized };
-  }
-}
-
-export async function getPaymentsForFeeAction(
-  feeRecordId: string
-): Promise<PaymentActionResult<Payment[]>> {
-  try {
-    const session = await requireAuth();
-    const payments = await PaymentService.getPaymentsForFeeRecord(session.userId, feeRecordId);
-    return { success: true, data: payments };
-  } catch (error) {
-    const sanitized = sanitizeError(error);
-    return { success: false, ...sanitized };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to fetch payments' };
   }
 }
