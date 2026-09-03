@@ -2,9 +2,8 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { StudentCreateInput, ALLOWED_SUBJECTS } from '@/lib/validations';
+import { ALLOWED_SUBJECTS } from '@/lib/validations';
 import { createStudentAction, updateStudentAction } from '@/actions/student.actions';
-import { addStudent, updateStudent } from '@/lib/storage';
 import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -14,7 +13,7 @@ interface StudentFormProps {
     name: string;
     guardianName?: string | null;
     phone?: string | null;
-    className?: string | null;
+    class?: string | null;
     school?: string | null;
     subjects: string[];
     monthlyFee: number | string;
@@ -31,7 +30,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
   const [name, setName] = useState(initialData?.name || '');
   const [guardianName, setGuardianName] = useState(initialData?.guardianName || '');
   const [phone, setPhone] = useState(initialData?.phone || '');
-  const [className, setClassName] = useState(initialData?.className || '');
+  const [className, setClassName] = useState(initialData?.class || '');
   const [school, setSchool] = useState(initialData?.school || '');
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>(initialData?.subjects || []);
   const [monthlyFee, setMonthlyFee] = useState(
@@ -47,7 +46,6 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
   const [successMessage, setSuccessMessage] = useState('');
 
   const toggleSubject = (subject: string) => {
@@ -61,7 +59,6 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage('');
-    setFieldErrors({});
 
     const feeNum = parseFloat(monthlyFee);
     const dueDayNum = parseInt(feeDueDay, 10);
@@ -70,44 +67,33 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
       setErrorMessage('Student Full Name is required.');
       return;
     }
-
     if (isNaN(feeNum) || feeNum <= 0) {
       setErrorMessage('Please enter a valid monthly fee.');
       return;
     }
 
-    const payload: StudentCreateInput = {
-      name: name.trim(),
-      guardianName: guardianName.trim() || undefined,
-      phone: phone.trim() || undefined,
-      className: className.trim() || undefined,
-      school: school.trim() || undefined,
-      subjects: selectedSubjects,
-      monthlyFee: feeNum,
-      feeDueDay: dueDayNum,
-      joiningDate,
-      notes: notes.trim() || undefined,
-    };
-
     setIsSubmitting(true);
 
     try {
       if (isEdit && initialData) {
-        updateStudent(initialData.id, {
-          name: payload.name,
-          guardianName: payload.guardianName || undefined,
-          phone: payload.phone || undefined,
-          class: payload.className || '',
-          school: payload.school || undefined,
-          subjects: payload.subjects,
-          monthlyFee: payload.monthlyFee,
-          feeDueDay: payload.feeDueDay,
-          joiningDate: payload.joiningDate,
-          notes: payload.notes || undefined,
+        const result = await updateStudentAction(initialData.id, {
+          name: name.trim(),
+          guardianName: guardianName.trim() || undefined,
+          phone: phone.trim() || undefined,
+          className: className.trim() || undefined,
+          school: school.trim() || undefined,
+          subjects: selectedSubjects,
+          monthlyFee: feeNum,
+          feeDueDay: dueDayNum,
+          joiningDate,
+          notes: notes.trim() || undefined,
         });
 
-        // Background server action trigger if DB available
-        updateStudentAction(initialData.id, payload).catch(() => {});
+        if (!result.success) {
+          setErrorMessage(result.error);
+          setIsSubmitting(false);
+          return;
+        }
 
         setSuccessMessage('Student updated successfully.');
         setTimeout(() => {
@@ -115,22 +101,24 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
           router.refresh();
         }, 600);
       } else {
-        addStudent({
-          name: payload.name,
-          guardianName: payload.guardianName || undefined,
-          phone: payload.phone || undefined,
-          class: payload.className || '',
-          school: payload.school || undefined,
-          subjects: payload.subjects.length > 0 ? payload.subjects : ['General'],
-          monthlyFee: payload.monthlyFee,
-          feeDueDay: payload.feeDueDay,
-          joiningDate: payload.joiningDate,
-          notes: payload.notes || undefined,
-          status: 'ACTIVE',
+        const result = await createStudentAction({
+          name: name.trim(),
+          guardianName: guardianName.trim() || undefined,
+          phone: phone.trim() || undefined,
+          className: className.trim() || undefined,
+          school: school.trim() || undefined,
+          subjects: selectedSubjects.length > 0 ? selectedSubjects : ['General'],
+          monthlyFee: feeNum,
+          feeDueDay: dueDayNum,
+          joiningDate,
+          notes: notes.trim() || undefined,
         });
 
-        // Background server action trigger if DB available
-        createStudentAction(payload).catch(() => {});
+        if (!result.success) {
+          setErrorMessage(result.error);
+          setIsSubmitting(false);
+          return;
+        }
 
         setSuccessMessage('Student added successfully.');
         setTimeout(() => {
@@ -139,7 +127,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
         }, 600);
       }
     } catch (err: any) {
-      setErrorMessage(err.message || 'An error occurred while saving student.');
+      setErrorMessage(err.message || 'An error occurred. Please try again.');
       setIsSubmitting(false);
     }
   };
@@ -154,13 +142,13 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
       )}
 
       {successMessage && (
-        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-3 text-sm text-emerald-700 font-semibold">
+        <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center gap-3 text-sm text-emerald-700">
           <CheckCircle2 className="w-5 h-5 flex-shrink-0" />
           <span>{successMessage}</span>
         </div>
       )}
 
-      {/* Section 1: Student Information */}
+      {/* Section 1: Student Info */}
       <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs space-y-4">
         <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
           Student Information
@@ -176,10 +164,9 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="e.g. Rahul Sharma"
-            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:bg-white focus:border-emerald-600 outline-none transition"
+            placeholder="e.g. Arjun Sharma"
+            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-emerald-600 outline-none transition"
           />
-          {fieldErrors.name && <p className="text-xs text-red-600 mt-1">{fieldErrors.name[0]}</p>}
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -192,14 +179,10 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
               type="text"
               value={className}
               onChange={(e) => setClassName(e.target.value)}
-              placeholder="e.g. Class 8 or 10th"
+              placeholder="e.g. 10th, Class 8"
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-emerald-600 outline-none transition"
             />
-            {fieldErrors.className && (
-              <p className="text-xs text-red-600 mt-1">{fieldErrors.className[0]}</p>
-            )}
           </div>
-
           <div>
             <label htmlFor="student-school" className="block text-xs font-bold text-slate-700 mb-1">
               School Name (Optional)
@@ -215,37 +198,30 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
           </div>
         </div>
 
-        {/* Subjects Multi-select (Optional per Phase 2 contract) */}
         <div>
           <label className="block text-xs font-bold text-slate-700 mb-2">
             Subjects Taught (Optional)
           </label>
           <div className="flex flex-wrap gap-2">
-            {ALLOWED_SUBJECTS.map((sub) => {
-              const isSelected = selectedSubjects.includes(sub);
-              return (
-                <button
-                  type="button"
-                  key={sub}
-                  onClick={() => toggleSubject(sub)}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition ${
-                    isSelected
-                      ? 'bg-emerald-600 border-emerald-600 text-white shadow-2xs'
-                      : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'
-                  }`}
-                >
-                  {sub}
-                </button>
-              );
-            })}
+            {ALLOWED_SUBJECTS.map((subject) => (
+              <button
+                key={subject}
+                type="button"
+                onClick={() => toggleSubject(subject)}
+                className={`px-3.5 py-1.5 rounded-full text-sm font-medium transition-all ${
+                  selectedSubjects.includes(subject)
+                    ? 'bg-emerald-600 text-white shadow-sm'
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`}
+              >
+                {subject}
+              </button>
+            ))}
           </div>
-          {fieldErrors.subjects && (
-            <p className="text-xs text-red-600 mt-1">{fieldErrors.subjects[0]}</p>
-          )}
         </div>
       </div>
 
-      {/* Section 2: Contact Information */}
+      {/* Section 2: Contact */}
       <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs space-y-4">
         <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
           Contact Information
@@ -253,10 +229,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label
-              htmlFor="student-guardian"
-              className="block text-xs font-bold text-slate-700 mb-1"
-            >
+            <label htmlFor="student-guardian" className="block text-xs font-bold text-slate-700 mb-1">
               Parent / Guardian Name (Optional)
             </label>
             <input
@@ -283,14 +256,11 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
               placeholder="e.g. 9876543210 (10 digits)"
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-emerald-600 outline-none transition"
             />
-            {fieldErrors.phone && (
-              <p className="text-xs text-red-600 mt-1">{fieldErrors.phone[0]}</p>
-            )}
           </div>
         </div>
       </div>
 
-      {/* Section 3: Fee Setup (Required) */}
+      {/* Section 3: Fee Setup */}
       <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs space-y-4">
         <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
           Fee Configuration
@@ -302,81 +272,61 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
               Monthly Fee (₹) <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">
-                ₹
-              </span>
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm">₹</span>
               <input
                 id="student-fee"
                 type="number"
-                step="any"
                 required
+                min="1"
                 value={monthlyFee}
                 onChange={(e) => setMonthlyFee(e.target.value)}
                 placeholder="2000"
-                className="w-full pl-8 pr-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:bg-white focus:border-emerald-600 outline-none transition"
+                className="w-full pl-8 pr-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-emerald-600 outline-none transition"
               />
             </div>
-            {fieldErrors.monthlyFee && (
-              <p className="text-xs text-red-600 mt-1">{fieldErrors.monthlyFee[0]}</p>
-            )}
           </div>
 
           <div>
-            <label
-              htmlFor="student-due-day"
-              className="block text-xs font-bold text-slate-700 mb-1"
-            >
+            <label htmlFor="student-dueday" className="block text-xs font-bold text-slate-700 mb-1">
               Fee Due Day <span className="text-red-500">*</span>
             </label>
             <div className="relative">
               <input
-                id="student-due-day"
+                id="student-dueday"
                 type="number"
+                required
                 min="1"
                 max="31"
-                required
                 value={feeDueDay}
                 onChange={(e) => setFeeDueDay(e.target.value)}
                 placeholder="5"
-                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:bg-white focus:border-emerald-600 outline-none transition"
+                className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-emerald-600 outline-none transition pr-20"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium">
-                th of month
-              </span>
+              <span className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs">th of month</span>
             </div>
-            {fieldErrors.feeDueDay && (
-              <p className="text-xs text-red-600 mt-1">{fieldErrors.feeDueDay[0]}</p>
-            )}
           </div>
 
           <div>
-            <label
-              htmlFor="student-joining-date"
-              className="block text-xs font-bold text-slate-700 mb-1"
-            >
+            <label htmlFor="student-joining" className="block text-xs font-bold text-slate-700 mb-1">
               Joining Date <span className="text-red-500">*</span>
             </label>
             <input
-              id="student-joining-date"
+              id="student-joining"
               type="date"
               required
               value={joiningDate}
               onChange={(e) => setJoiningDate(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-900 focus:bg-white focus:border-emerald-600 outline-none transition"
+              className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-emerald-600 outline-none transition"
             />
-            {fieldErrors.joiningDate && (
-              <p className="text-xs text-red-600 mt-1">{fieldErrors.joiningDate[0]}</p>
-            )}
           </div>
         </div>
       </div>
 
       {/* Section 4: Notes */}
-      <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs space-y-4">
-        <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+      <div className="bg-white rounded-2xl border border-slate-200/80 p-5 sm:p-6 shadow-2xs">
+        <h2 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-4">
           Additional Notes
         </h2>
-
         <div>
           <label htmlFor="student-notes" className="block text-xs font-bold text-slate-700 mb-1">
             Notes (Optional)
@@ -387,26 +337,26 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
             placeholder="e.g. Morning batch timing, special attention on Algebra, board target"
-            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-emerald-600 outline-none transition"
+            className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-emerald-600 outline-none transition resize-none"
           />
         </div>
       </div>
 
-      {/* Action Footer */}
-      <div className="flex items-center justify-end gap-3 pt-2">
+      {/* Actions */}
+      <div className="flex items-center justify-end gap-3 pb-4">
         <Link
           href={isEdit && initialData ? `/students/${initialData.id}` : '/students'}
-          className="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-700 font-semibold text-sm hover:bg-slate-50 transition"
+          className="px-5 py-2.5 text-sm font-semibold text-slate-600 bg-white border border-slate-200 rounded-xl hover:bg-slate-50 transition"
         >
           Cancel
         </Link>
         <button
           type="submit"
           disabled={isSubmitting}
-          className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 disabled:opacity-50 text-white font-bold text-sm rounded-xl shadow-sm shadow-emerald-200 transition flex items-center gap-2"
+          className="flex items-center gap-2 px-6 py-2.5 text-sm font-semibold text-white bg-emerald-600 rounded-xl hover:bg-emerald-700 disabled:opacity-60 transition shadow-sm"
         >
           {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
-          <span>{isEdit ? 'Save Changes' : 'Add Student'}</span>
+          {isSubmitting ? 'Saving...' : isEdit ? 'Save Changes' : 'Add Student'}
         </button>
       </div>
     </form>
