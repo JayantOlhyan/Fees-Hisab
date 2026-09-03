@@ -10,12 +10,8 @@ interface FeesPageProps {
 }
 
 export default async function FeesPage({ searchParams }: FeesPageProps) {
-  let session;
-  try {
-    session = await requireAuth();
-  } catch {
-    redirect('/login');
-  }
+  const session = await requireAuth();
+
 
   const params = await searchParams;
   const now = new Date();
