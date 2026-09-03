@@ -120,6 +120,18 @@ export default function ReportsPage() {
       .sort((a, b) => b.lifetimePaid - a.lifetimePaid);
   }, [activeStudents, feeRecords]);
 
+  const availableMonths = useMemo(() => {
+    const months = [];
+    const d = new Date();
+    for (let i = -6; i <= 6; i++) {
+      const target = new Date(d.getFullYear(), d.getMonth() + i, 1);
+      const ym = getYearMonthString(target);
+      const label = target.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+      months.push({ ym, label });
+    }
+    return months;
+  }, []);
+
   if (!mounted) return null;
 
   return (
@@ -146,10 +158,11 @@ export default function ReportsPage() {
               aria-label="Filter report by month"
               className="bg-transparent text-xs sm:text-sm font-semibold text-slate-800 outline-none cursor-pointer"
             >
-              <option value="2026-07">July 2026</option>
-              <option value="2026-08">August 2026</option>
-              <option value="2026-09">September 2026</option>
-              <option value="2026-10">October 2026</option>
+              {availableMonths.map((m) => (
+                <option key={m.ym} value={m.ym}>
+                  {m.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>
@@ -284,30 +297,38 @@ export default function ReportsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs">
-                  {studentHistoricalSummary.map(
-                    ({ student, lifetimePaid, currentDue, paidMonths }) => (
-                      <tr key={student.id} className="hover:bg-slate-50/60 transition">
-                        <td className="py-3 px-4">
-                          <Link
-                            href={`/students/${student.id}`}
-                            className="font-bold text-slate-900 hover:text-emerald-600 transition"
-                          >
-                            {student.name}
-                          </Link>
-                        </td>
-                        <td className="py-3 px-4 text-slate-600">{student.class}</td>
-                        <td className="py-3 px-4 text-right font-medium text-slate-700">
-                          {paidMonths} {paidMonths === 1 ? 'month' : 'months'}
-                        </td>
-                        <td className="py-3 px-4 text-right font-bold text-emerald-600">
-                          {formatINR(lifetimePaid)}
-                        </td>
-                        <td className="py-3 px-4 text-right font-black">
-                          <span className={currentDue > 0 ? 'text-red-600' : 'text-slate-400'}>
-                            {formatINR(currentDue)}
-                          </span>
-                        </td>
-                      </tr>
+                  {studentHistoricalSummary.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="py-8 text-center text-xs text-slate-400">
+                        No student records found. Click &quot;+ Add Student&quot; to start recording payments.
+                      </td>
+                    </tr>
+                  ) : (
+                    studentHistoricalSummary.map(
+                      ({ student, lifetimePaid, currentDue, paidMonths }) => (
+                        <tr key={student.id} className="hover:bg-slate-50/60 transition">
+                          <td className="py-3 px-4">
+                            <Link
+                              href={`/students/${student.id}`}
+                              className="font-bold text-slate-900 hover:text-emerald-600 transition"
+                            >
+                              {student.name}
+                            </Link>
+                          </td>
+                          <td className="py-3 px-4 text-slate-600">{student.class}</td>
+                          <td className="py-3 px-4 text-right font-medium text-slate-700">
+                            {paidMonths} {paidMonths === 1 ? 'month' : 'months'}
+                          </td>
+                          <td className="py-3 px-4 text-right font-bold text-emerald-600">
+                            {formatINR(lifetimePaid)}
+                          </td>
+                          <td className="py-3 px-4 text-right font-black">
+                            <span className={currentDue > 0 ? 'text-red-600' : 'text-slate-400'}>
+                              {formatINR(currentDue)}
+                            </span>
+                          </td>
+                        </tr>
+                      )
                     )
                   )}
                 </tbody>
@@ -319,3 +340,4 @@ export default function ReportsPage() {
     </div>
   );
 }
+

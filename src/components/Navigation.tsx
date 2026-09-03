@@ -39,17 +39,26 @@ export const Navigation: React.FC<NavigationProps> = ({ onOpenAddStudent }) => {
         </div>
 
         {/* Action Button */}
-        {onOpenAddStudent && (
-          <div className="p-4">
+        <div className="p-4">
+          {onOpenAddStudent ? (
             <button
               onClick={onOpenAddStudent}
-              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-sm font-semibold rounded-xl shadow-sm shadow-emerald-200 transition"
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-sm font-semibold rounded-xl shadow-sm shadow-emerald-200 transition cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               <span>Add Student</span>
             </button>
-          </div>
-        )}
+          ) : (
+            <Link
+              href="/students/new"
+              className="w-full flex items-center justify-center gap-2 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-sm font-semibold rounded-xl shadow-sm shadow-emerald-200 transition cursor-pointer"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Student</span>
+            </Link>
+          )}
+        </div>
+
 
         {/* Nav Links */}
         <nav className="flex-1 px-3 py-2 space-y-1">
