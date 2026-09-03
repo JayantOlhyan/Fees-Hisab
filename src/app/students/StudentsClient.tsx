@@ -112,7 +112,8 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({ initialStudents 
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by name, guardian, phone, class or school..."
+            aria-label="Search students"
+            placeholder="Search students..."
             className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200/90 rounded-xl text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-600 focus:ring-2 focus:ring-emerald-100 shadow-2xs transition"
           />
           {searchQuery && (
