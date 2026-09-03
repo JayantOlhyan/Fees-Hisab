@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, UserPlus, AlertCircle } from 'lucide-react';
-import { addStudent } from '@/lib/storage';
+import { X, UserPlus, AlertCircle, Loader2 } from 'lucide-react';
+import { createStudentAction } from '@/actions/student.actions';
 
 interface AddStudentModalProps {
   isOpen: boolean;
@@ -26,17 +26,19 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
   const [joiningDate, setJoiningDate] = useState(new Date().toISOString().split('T')[0]);
   const [notes, setNotes] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrorMessage('');
     if (!name.trim()) {
       setErrorMessage('Student name is required');
       return;
     }
     const fee = parseFloat(monthlyFee);
-    if (isNaN(fee) || fee < 0) {
+    if (isNaN(fee) || fee <= 0) {
       setErrorMessage('Please enter a valid monthly fee');
       return;
     }
@@ -51,22 +53,33 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
       .map((s) => s.trim())
       .filter(Boolean);
 
-    addStudent({
-      name: name.trim(),
-      guardianName: guardianName.trim() || undefined,
-      phone: phone.trim() || undefined,
-      class: studentClass.trim(),
-      school: school.trim() || undefined,
-      subjects: subjects.length > 0 ? subjects : ['General'],
-      joiningDate,
-      monthlyFee: fee,
-      feeDueDay: dueDay,
-      status: 'ACTIVE',
-      notes: notes.trim() || undefined,
-    });
+    setIsSubmitting(true);
+    try {
+      const result = await createStudentAction({
+        name: name.trim(),
+        guardianName: guardianName.trim() || undefined,
+        phone: phone.trim() || undefined,
+        className: studentClass.trim(),
+        school: school.trim() || undefined,
+        subjects: subjects.length > 0 ? subjects : ['General'],
+        joiningDate,
+        monthlyFee: fee,
+        feeDueDay: dueDay,
+        notes: notes.trim() || undefined,
+      });
 
-    onStudentAdded();
-    onClose();
+      if (!result.success) {
+        setErrorMessage(result.error);
+        setIsSubmitting(false);
+        return;
+      }
+
+      onStudentAdded();
+      onClose();
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to add student. Please try again.');
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -282,9 +295,11 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
             </button>
             <button
               type="submit"
-              className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold text-sm shadow-md shadow-emerald-200 transition"
+              disabled={isSubmitting}
+              className="flex-1 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-60 text-white rounded-xl font-bold text-sm shadow-md shadow-emerald-200 transition flex items-center justify-center gap-2"
             >
-              Add Student
+              {isSubmitting && <Loader2 className="w-4 h-4 animate-spin" />}
+              {isSubmitting ? 'Saving...' : 'Add Student'}
             </button>
           </div>
         </form>
