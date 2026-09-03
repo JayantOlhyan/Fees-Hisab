@@ -20,7 +20,8 @@ export default async function FeesPage({ searchParams }: FeesPageProps) {
 
   let feeRecords: FeeItem[] = [];
   try {
-    feeRecords = await FeeService.getFeeRecordsForPeriod(session.userId, currentYear, currentMonth);
+    const { getFeeItemsForPeriodNotion } = await import('@/lib/notion/service');
+    feeRecords = await getFeeItemsForPeriodNotion(currentYear, currentMonth);
   } catch {
     feeRecords = [];
   }

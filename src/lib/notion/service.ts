@@ -114,7 +114,7 @@ export async function createStudent(data: {
   notes?: string;
 }): Promise<Student> {
   const page = await notion().pages.create({
-    parent: { database_id: DB.STUDENTS },
+    parent: { data_source_id: DB.STUDENTS } as any,
     properties: {
       Name: { title: [{ text: { content: data.name } }] },
       'Guardian Name': { rich_text: [{ text: { content: data.guardianName || '' } }] },
@@ -217,7 +217,7 @@ export async function ensureFeeRecord(data: {
   }
 
   const page = await client.pages.create({
-    parent: { database_id: DB.FEE_RECORDS },
+    parent: { data_source_id: DB.FEE_RECORDS } as any,
     properties: {
       Title: { title: [{ text: { content: `${data.studentId} - ${data.billingMonth}` } }] },
       'Student ID': { rich_text: [{ text: { content: data.studentId } }] },
@@ -279,7 +279,7 @@ export async function recordPayment(data: {
   notes?: string;
 }): Promise<Payment> {
   const page = await notion().pages.create({
-    parent: { database_id: DB.PAYMENTS },
+    parent: { data_source_id: DB.PAYMENTS } as any,
     properties: {
       Title: {
         title: [{ text: { content: `${data.studentName} – ${data.paymentDate}` } }],
@@ -294,3 +294,174 @@ export async function recordPayment(data: {
   });
   return pageToPayment(page as PageObjectResponse);
 }
+
+// ─── High-Level Helpers for UI Pages ──────────────────────────────────────────
+
+export async function getFeeItemsForPeriodNotion(year: number, month: number) {
+  const students = await getStudents(true);
+  const feeRecords = await getFeeRecords();
+  const targetBillingMonth = `${year}-${String(month).padStart(2, '0')}`;
+  const todayStr = new Date().toISOString().split('T')[0];
+
+  const studentMap = new Map(students.map((s) => [s.id, s]));
+
+  const periodRecords = feeRecords.filter((r) => r.billingMonth === targetBillingMonth);
+  const recordStudentIds = new Set(periodRecords.map((r) => r.studentId));
+
+  const items: Array<{
+    id: string;
+    studentId: string;
+    studentName: string;
+    guardianName: string | null;
+    phone: string | null;
+    className: string | null;
+    billingYear: number;
+    billingMonth: number;
+    amountDue: string;
+    dueDate: string;
+    totalPaid: string;
+    outstanding: string;
+    status: FeeStatus;
+  }> = [];
+
+  for (const record of periodRecords) {
+    const student = studentMap.get(record.studentId);
+    const studentName = student ? student.name : 'Unknown Student';
+    const guardianName = student?.guardianName ?? null;
+    const phone = student?.phone ?? null;
+    const className = student?.class ?? null;
+
+    let computedStatus: FeeStatus = record.status;
+    const outstandingVal = Math.max(0, record.amountDue - record.amountPaid);
+    if (record.amountPaid >= record.amountDue && record.amountDue > 0) {
+      computedStatus = 'PAID';
+    } else if (record.amountPaid > 0) {
+      computedStatus = 'PARTIALLY_PAID';
+    } else if (record.dueDate && record.dueDate < todayStr) {
+      computedStatus = 'OVERDUE';
+    }
+
+    items.push({
+      id: record.id,
+      studentId: record.studentId,
+      studentName,
+      guardianName,
+      phone,
+      className,
+      billingYear: year,
+      billingMonth: month,
+      amountDue: String(record.amountDue),
+      dueDate: record.dueDate,
+      totalPaid: String(record.amountPaid),
+      outstanding: String(outstandingVal),
+      status: computedStatus,
+    });
+  }
+
+  // Include active students without a fee record for this month
+  for (const student of students) {
+    if (student.status === 'ACTIVE' && !recordStudentIds.has(student.id)) {
+      const dueDayStr = String(student.feeDueDay || 5).padStart(2, '0');
+      const dueDate = `${year}-${String(month).padStart(2, '0')}-${dueDayStr}`;
+      const isOverdue = dueDate < todayStr;
+
+      items.push({
+        id: `draft-${student.id}`,
+        studentId: student.id,
+        studentName: student.name,
+        guardianName: student.guardianName ?? null,
+        phone: student.phone ?? null,
+        className: student.class ?? null,
+        billingYear: year,
+        billingMonth: month,
+        amountDue: String(student.monthlyFee),
+        dueDate,
+        totalPaid: '0',
+        outstanding: String(student.monthlyFee),
+        status: isOverdue ? 'OVERDUE' : 'UPCOMING',
+      });
+    }
+  }
+
+  return items;
+}
+
+export async function getDashboardSummaryNotion(year: number, month: number) {
+  const students = await getStudents(true);
+  const activeStudents = students.filter((s) => s.status === 'ACTIVE');
+  const feeItems = await getFeeItemsForPeriodNotion(year, month);
+  const payments = await getPayments();
+
+  const studentMap = new Map(students.map((s) => [s.id, s]));
+
+  let collectedSum = 0;
+  let outstandingSum = 0;
+  let overdueCount = 0;
+  let paidCount = 0;
+  let partiallyPaidCount = 0;
+  let dueCount = 0;
+  let upcomingCount = 0;
+
+  const needsAttention: any[] = [];
+
+  for (const item of feeItems) {
+    const paid = Number(item.totalPaid) || 0;
+    const out = Number(item.outstanding) || 0;
+
+    collectedSum += paid;
+    outstandingSum += out;
+
+    switch (item.status) {
+      case 'PAID':
+        paidCount++;
+        break;
+      case 'PARTIALLY_PAID':
+        partiallyPaidCount++;
+        needsAttention.push(item);
+        break;
+      case 'OVERDUE':
+        overdueCount++;
+        needsAttention.push(item);
+        break;
+      case 'DUE':
+        dueCount++;
+        needsAttention.push(item);
+        break;
+      case 'UPCOMING':
+        upcomingCount++;
+        break;
+    }
+  }
+
+  const recentPayments = payments.slice(0, 5).map((p) => {
+    const st = studentMap.get(p.studentId);
+    return {
+      id: p.id,
+      studentId: p.studentId,
+      studentName: st?.name || 'Student',
+      className: st?.class || null,
+      amount: String(p.amount),
+      paymentDate: p.paymentDate,
+      paymentMethod: p.paymentMethod,
+      notes: p.notes ?? null,
+      feeRecordId: p.feeRecordId,
+    };
+  });
+
+  return {
+    billingYear: year,
+    billingMonth: month,
+    activeStudentsCount: activeStudents.length,
+    collectedThisMonth: String(collectedSum),
+    outstandingThisMonth: String(outstandingSum),
+    overdueCount,
+    paidCount,
+    partiallyPaidCount,
+    dueCount,
+    upcomingCount,
+    hasFeeRecords: feeItems.length > 0,
+    needsAttention,
+    recentPayments,
+  };
+}
+

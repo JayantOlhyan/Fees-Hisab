@@ -4,9 +4,8 @@ import { notFound } from 'next/navigation';
 import { ArrowLeft, UserCheck } from 'lucide-react';
 import { Navigation } from '@/components/Navigation';
 import { StudentForm } from '@/components/StudentForm';
-import { StudentService } from '@/services/students/student.service';
+import { getStudentById } from '@/lib/notion/service';
 import { requireAuth } from '@/lib/auth/session';
-import { redirect } from 'next/navigation';
 
 interface EditStudentPageProps {
   params: Promise<{ id: string }>;
@@ -14,12 +13,11 @@ interface EditStudentPageProps {
 
 export default async function EditStudentPage({ params }: EditStudentPageProps) {
   const { id } = await params;
-  const session = await requireAuth();
-
+  await requireAuth();
 
   let student;
   try {
-    student = await StudentService.getStudentById(session.userId, id);
+    student = await getStudentById(id);
   } catch {
     notFound();
   }
@@ -29,12 +27,12 @@ export default async function EditStudentPage({ params }: EditStudentPageProps) 
     name: student.name,
     guardianName: student.guardianName,
     phone: student.phone,
-    className: student.className,
+    class: student.class,
     school: student.school,
     subjects: student.subjects,
-    monthlyFee: student.monthlyFee.toString(),
+    monthlyFee: String(student.monthlyFee),
     feeDueDay: student.feeDueDay,
-    joiningDate: student.joiningDate.toISOString().split('T')[0],
+    joiningDate: student.joiningDate,
     notes: student.notes,
   };
 

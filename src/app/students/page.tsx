@@ -1,34 +1,31 @@
 import React from 'react';
 import { Navigation } from '@/components/Navigation';
 import { StudentsClient, StudentListItem } from './StudentsClient';
-import { StudentService } from '@/services/students/student.service';
+import { getStudents } from '@/lib/notion/service';
 import { requireAuth } from '@/lib/auth/session';
-import { redirect } from 'next/navigation';
+
 export default async function StudentsPage() {
-  const session = await requireAuth();
+  await requireAuth();
 
-
-
-  let students: Awaited<ReturnType<typeof StudentService.getStudents>> = [];
+  let sourceStudents: StudentListItem[] = [];
   try {
-    students = await StudentService.getStudents(session.userId, true);
+    const rawStudents = await getStudents(true);
+    sourceStudents = rawStudents.map((s) => ({
+      id: s.id,
+      name: s.name,
+      guardianName: s.guardianName ?? null,
+      phone: s.phone ?? null,
+      className: s.class || null,
+      school: s.school ?? null,
+      subjects: s.subjects,
+      monthlyFee: String(s.monthlyFee),
+      feeDueDay: s.feeDueDay,
+      joiningDate: s.joiningDate,
+      status: s.status as 'ACTIVE' | 'ARCHIVED',
+    }));
   } catch {
-    students = [];
+    sourceStudents = [];
   }
-
-  const sourceStudents = students.map((s) => ({
-    id: s.id,
-    name: s.name,
-    guardianName: s.guardianName,
-    phone: s.phone,
-    className: s.className,
-    school: s.school,
-    subjects: s.subjects,
-    monthlyFee: s.monthlyFee.toString(),
-    feeDueDay: s.feeDueDay,
-    joiningDate: s.joiningDate.toISOString(),
-    status: s.status,
-  }));
 
 
 

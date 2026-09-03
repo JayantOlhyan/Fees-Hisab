@@ -25,7 +25,27 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
     ? parseInt(resolvedSearchParams.month, 10)
     : now.getMonth() + 1;
 
-  const summary = await DashboardService.getDashboardSummary(session.userId, year, month);
+  let summary;
+  try {
+    const { getDashboardSummaryNotion } = await import('@/lib/notion/service');
+    summary = await getDashboardSummaryNotion(year, month);
+  } catch {
+    summary = {
+      billingYear: year,
+      billingMonth: month,
+      activeStudentsCount: 0,
+      collectedThisMonth: '0',
+      outstandingThisMonth: '0',
+      overdueCount: 0,
+      paidCount: 0,
+      partiallyPaidCount: 0,
+      dueCount: 0,
+      upcomingCount: 0,
+      hasFeeRecords: false,
+      needsAttention: [],
+      recentPayments: [],
+    };
+  }
 
-  return <DashboardClient summary={summary} />;
+  return <DashboardClient summary={summary as any} />;
 }
