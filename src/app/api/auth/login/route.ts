@@ -53,8 +53,8 @@ export async function POST(req: Request) {
     };
 
     const token = await createSessionToken(payload);
-    const cookieStore = await cookies();
-    cookieStore.set(SESSION_COOKIE_NAME, token, {
+    const response = NextResponse.json({ success: true, teacher: payload });
+    response.cookies.set(SESSION_COOKIE_NAME, token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
@@ -62,7 +62,8 @@ export async function POST(req: Request) {
       path: '/',
     });
 
-    return NextResponse.json({ success: true, teacher: payload });
+    return response;
+
   } catch (error) {
     return NextResponse.json({ success: false, error: (error as Error).message }, { status: 500 });
   }
