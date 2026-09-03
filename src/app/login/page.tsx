@@ -19,8 +19,7 @@ export default function LoginPage() {
         body: JSON.stringify({ email }),
       });
       if (res.ok) {
-        router.push('/students');
-        router.refresh();
+        window.location.href = '/students';
       }
     } finally {
       setLoading(false);
