@@ -20,6 +20,7 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@notionhq/client": "^5.26.0",
     "@prisma/client": "^6.19.3",
     "@types/bcryptjs": "^2.4.6",
     "@types/canvas-confetti": "^1.9.0",
