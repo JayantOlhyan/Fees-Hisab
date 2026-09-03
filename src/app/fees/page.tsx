@@ -2,24 +2,24 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { 
-  Calendar, 
-  ChevronLeft, 
-  ChevronRight, 
-  Search, 
-  CheckCircle2, 
+import {
+  Calendar,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  CheckCircle2,
   AlertCircle,
-  Plus
+  Plus,
 } from 'lucide-react';
 import { Navigation } from '@/components/Navigation';
 import { StatusBadge } from '@/components/StatusBadge';
 import { RecordPaymentModal } from '@/components/RecordPaymentModal';
 import { AddStudentModal } from '@/components/AddStudentModal';
-import { 
-  getStudents, 
-  getFeeRecords, 
+import {
+  getStudents,
+  getFeeRecords,
   ensureFeeRecordsForMonth,
-  getYearMonthString 
+  getYearMonthString,
 } from '@/lib/storage';
 import { formatINR, formatMonthName, formatDateReadable } from '@/lib/utils';
 import { Student, FeeRecord, FeeStatus } from '@/types';
@@ -213,10 +213,10 @@ export default function FeesPage() {
                 {tab === 'ALL'
                   ? 'All'
                   : tab === 'PARTIALLY_PAID'
-                  ? 'Partial'
-                  : tab === 'DUE'
-                  ? 'Due Today'
-                  : tab.charAt(0) + tab.slice(1).toLowerCase()}
+                    ? 'Partial'
+                    : tab === 'DUE'
+                      ? 'Due Today'
+                      : tab.charAt(0) + tab.slice(1).toLowerCase()}
               </button>
             ))}
           </div>
@@ -257,8 +257,8 @@ export default function FeesPage() {
                   {filteredItems.map(({ record, student, outstanding }) => (
                     <tr key={record.id} className="hover:bg-slate-50/60 transition">
                       <td className="py-3 px-4">
-                        <Link 
-                          href={`/students/${student.id}`} 
+                        <Link
+                          href={`/students/${student.id}`}
                           className="font-bold text-slate-900 hover:text-emerald-600 transition block"
                         >
                           {student.name}

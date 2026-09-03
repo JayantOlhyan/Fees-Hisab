@@ -80,7 +80,9 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
             </div>
             <div>
               <h3 className="font-bold text-lg leading-tight">Add New Student</h3>
-              <p className="text-xs text-emerald-100">Set up student details and fee configuration</p>
+              <p className="text-xs text-emerald-100">
+                Set up student details and fee configuration
+              </p>
             </div>
           </div>
           <button
@@ -102,8 +104,10 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
 
           {/* Student & Guardian */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Basic Information</h4>
-            
+            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              Basic Information
+            </h4>
+
             <div>
               <label className="block text-xs font-bold text-slate-700 mb-1">
                 Student Full Name <span className="text-red-500">*</span>
@@ -120,7 +124,9 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Parent / Guardian Name</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Parent / Guardian Name
+                </label>
                 <input
                   type="text"
                   value={guardianName}
@@ -145,7 +151,9 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
 
           {/* Academic */}
           <div className="space-y-3 pt-2 border-t border-slate-100">
-            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Academic Details</h4>
+            <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
+              Academic Details
+            </h4>
 
             <div className="grid grid-cols-2 gap-3">
               <div>
@@ -199,7 +207,9 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
                   Monthly Fee (₹) <span className="text-red-500">*</span>
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">₹</span>
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 font-bold text-slate-400">
+                    ₹
+                  </span>
                   <input
                     type="number"
                     required
@@ -226,7 +236,9 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
                     placeholder="5"
                     className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-slate-900 focus:bg-white focus:border-emerald-600 outline-none transition"
                   />
-                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium">th of month</span>
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-medium">
+                    th of month
+                  </span>
                 </div>
               </div>
             </div>
@@ -243,7 +255,9 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Notes (Optional)</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Notes (Optional)
+                </label>
                 <input
                   type="text"
                   value={notes}

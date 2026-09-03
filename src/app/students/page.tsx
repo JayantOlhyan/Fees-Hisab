@@ -2,25 +2,25 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { 
-  Search, 
-  Plus, 
-  ChevronRight, 
-  Filter, 
-  Phone, 
-  BookOpen, 
+import {
+  Search,
+  Plus,
+  ChevronRight,
+  Filter,
+  Phone,
+  BookOpen,
   Archive,
-  GraduationCap
+  GraduationCap,
 } from 'lucide-react';
 import { Navigation } from '@/components/Navigation';
 import { StatusBadge } from '@/components/StatusBadge';
 import { AddStudentModal } from '@/components/AddStudentModal';
 import { RecordPaymentModal } from '@/components/RecordPaymentModal';
-import { 
-  getStudents, 
-  getFeeRecords, 
-  ensureFeeRecordsForMonth, 
-  getYearMonthString 
+import {
+  getStudents,
+  getFeeRecords,
+  ensureFeeRecordsForMonth,
+  getYearMonthString,
 } from '@/lib/storage';
 import { formatINR } from '@/lib/utils';
 import { Student, FeeRecord, FeeStatus } from '@/types';
@@ -137,7 +137,8 @@ export default function StudentsPage() {
           <div>
             <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Students</h1>
             <p className="text-xs text-slate-500 mt-0.5">
-              {filteredStudents.length} {filteredStudents.length === 1 ? 'student' : 'students'} listed
+              {filteredStudents.length} {filteredStudents.length === 1 ? 'student' : 'students'}{' '}
+              listed
             </p>
           </div>
 
@@ -218,7 +219,9 @@ export default function StudentsPage() {
               <GraduationCap className="w-10 h-10 text-slate-300 mx-auto mb-2" />
               <h3 className="font-bold text-slate-700 text-sm">No students found</h3>
               <p className="text-xs text-slate-400 mt-1">
-                {searchQuery ? 'Try adjusting your search or filters' : 'Add your first student to get started!'}
+                {searchQuery
+                  ? 'Try adjusting your search or filters'
+                  : 'Add your first student to get started!'}
               </p>
             </div>
           ) : (
@@ -266,7 +269,8 @@ export default function StudentsPage() {
                     <div className="flex items-center gap-3 mt-2">
                       <StatusBadge status={status} size="sm" />
                       <span className="text-xs text-slate-500">
-                        Monthly: <strong className="text-slate-800">{formatINR(student.monthlyFee)}</strong>
+                        Monthly:{' '}
+                        <strong className="text-slate-800">{formatINR(student.monthlyFee)}</strong>
                       </span>
                     </div>
                   </div>
@@ -275,7 +279,9 @@ export default function StudentsPage() {
                 {/* Right: Outstanding & Actions */}
                 <div className="flex items-center justify-between sm:justify-end gap-3 pt-3 sm:pt-0 border-t sm:border-t-0 border-slate-100">
                   <div className="text-left sm:text-right">
-                    <span className="text-[11px] text-slate-400 block font-medium">Outstanding</span>
+                    <span className="text-[11px] text-slate-400 block font-medium">
+                      Outstanding
+                    </span>
                     <span
                       className={`font-extrabold text-sm sm:text-base ${
                         outstanding > 0 ? 'text-red-600' : 'text-emerald-600'

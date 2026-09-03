@@ -53,7 +53,9 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
       return;
     }
     if (parsedAmount > currentOutstanding) {
-      setErrorMessage(`Amount cannot exceed outstanding amount of ${formatINR(currentOutstanding)}`);
+      setErrorMessage(
+        `Amount cannot exceed outstanding amount of ${formatINR(currentOutstanding)}`
+      );
       return;
     }
 
@@ -94,9 +96,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-slate-900/60 backdrop-blur-xs p-0 sm:p-4">
-      <div 
-        className="w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in slide-in-from-bottom-6 duration-200"
-      >
+      <div className="w-full sm:max-w-md bg-white rounded-t-3xl sm:rounded-2xl shadow-2xl overflow-hidden border border-slate-100 animate-in fade-in slide-in-from-bottom-6 duration-200">
         {/* Header */}
         <div className="bg-emerald-600 text-white p-5 flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -106,7 +106,8 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
             <div>
               <h3 className="font-bold text-lg leading-tight">{student.name}</h3>
               <p className="text-xs text-emerald-100">
-                {student.class} {student.subjects.length > 0 ? `· ${student.subjects.join(', ')}` : ''}
+                {student.class}{' '}
+                {student.subjects.length > 0 ? `· ${student.subjects.join(', ')}` : ''}
               </p>
             </div>
           </div>
@@ -122,20 +123,28 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
         <div className="bg-emerald-50/70 border-b border-emerald-100/60 p-4">
           <div className="flex justify-between items-center text-xs font-semibold text-slate-500 uppercase tracking-wider mb-2">
             <span>Billing Month</span>
-            <span className="text-slate-800 font-bold">{formatMonthName(feeRecord.billingMonth)}</span>
+            <span className="text-slate-800 font-bold">
+              {formatMonthName(feeRecord.billingMonth)}
+            </span>
           </div>
           <div className="grid grid-cols-3 gap-2 text-center">
             <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
               <span className="text-[11px] text-slate-500 block">Amount Due</span>
-              <span className="text-sm font-bold text-slate-800">{formatINR(feeRecord.amountDue)}</span>
+              <span className="text-sm font-bold text-slate-800">
+                {formatINR(feeRecord.amountDue)}
+              </span>
             </div>
             <div className="bg-white p-2.5 rounded-xl border border-slate-100 shadow-2xs">
               <span className="text-[11px] text-slate-500 block">Already Paid</span>
-              <span className="text-sm font-bold text-emerald-600">{formatINR(feeRecord.amountPaid)}</span>
+              <span className="text-sm font-bold text-emerald-600">
+                {formatINR(feeRecord.amountPaid)}
+              </span>
             </div>
             <div className="bg-white p-2.5 rounded-xl border border-emerald-100 shadow-2xs bg-emerald-50/30">
               <span className="text-[11px] text-emerald-700 block font-medium">Outstanding</span>
-              <span className="text-sm font-extrabold text-red-600">{formatINR(currentOutstanding)}</span>
+              <span className="text-sm font-extrabold text-red-600">
+                {formatINR(currentOutstanding)}
+              </span>
             </div>
           </div>
         </div>
@@ -154,7 +163,9 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
               Amount Paid (₹) <span className="text-red-500">*</span>
             </label>
             <div className="relative">
-              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">₹</span>
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 font-bold text-slate-400">
+                ₹
+              </span>
               <input
                 type="number"
                 step="any"
@@ -209,9 +220,7 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
-              Note (Optional)
-            </label>
+            <label className="block text-xs font-bold text-slate-700 mb-1">Note (Optional)</label>
             <input
               type="text"
               value={notes}

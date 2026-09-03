@@ -1,34 +1,34 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  Settings, 
-  Download, 
-  Upload, 
-  RefreshCw, 
-  ShieldCheck, 
-  User, 
+import {
+  Settings,
+  Download,
+  Upload,
+  RefreshCw,
+  ShieldCheck,
+  User,
   CheckCircle,
   AlertTriangle,
-  FileSpreadsheet
+  FileSpreadsheet,
 } from 'lucide-react';
 import { Navigation } from '@/components/Navigation';
-import { 
-  getSettings, 
-  saveSettings, 
-  exportAllData, 
-  importAllData, 
+import {
+  getSettings,
+  saveSettings,
+  exportAllData,
+  importAllData,
   resetToSeedData,
   getStudents,
   getFeeRecords,
-  getPayments
+  getPayments,
 } from '@/lib/storage';
 import Image from 'next/image';
 
 export default function SettingsPage() {
   const [mounted, setMounted] = useState(false);
   const [teacherName, setTeacherName] = useState('');
-  const [salutation, setSalutation] = useState<'Ma\'am' | 'Sir' | 'Teacher'>('Ma\'am');
+  const [salutation, setSalutation] = useState<"Ma'am" | 'Sir' | 'Teacher'>("Ma'am");
   const [saveMessage, setSaveMessage] = useState('');
   const [importStatus, setImportStatus] = useState<'success' | 'error' | null>(null);
 
@@ -136,7 +136,9 @@ export default function SettingsPage() {
         {/* Header */}
         <div className="pb-4 border-b border-slate-200/80 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Settings & Backup</h1>
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+              Settings & Backup
+            </h1>
             <p className="text-xs text-slate-500 mt-0.5">
               Manage your profile, backup your data, and export records
             </p>
@@ -179,10 +181,10 @@ export default function SettingsPage() {
               </label>
               <select
                 value={salutation}
-                onChange={(e) => setSalutation(e.target.value as 'Ma\'am' | 'Sir' | 'Teacher')}
+                onChange={(e) => setSalutation(e.target.value as "Ma'am" | 'Sir' | 'Teacher')}
                 className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-900 focus:bg-white focus:border-emerald-600 outline-none"
               >
-                <option value="Ma'am">Good afternoon, Ma'am</option>
+                <option value="Ma'am">Good afternoon, Ma&apos;am</option>
                 <option value="Sir">Good afternoon, Sir</option>
                 <option value="Teacher">Good afternoon, Teacher</option>
               </select>
@@ -204,7 +206,8 @@ export default function SettingsPage() {
             Data Backup & Restore
           </h2>
           <p className="text-xs text-slate-500 mb-4">
-            Your fee records are stored securely on your browser. You can export a backup at any time or restore from an existing file.
+            Your fee records are stored securely on your browser. You can export a backup at any
+            time or restore from an existing file.
           </p>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -216,7 +219,8 @@ export default function SettingsPage() {
                   Full Data Backup (JSON)
                 </h3>
                 <p className="text-[11px] text-slate-500 mt-1">
-                  Exports all students, monthly fee records, payments, and settings in a single JSON backup.
+                  Exports all students, monthly fee records, payments, and settings in a single JSON
+                  backup.
                 </p>
               </div>
               <button
@@ -235,7 +239,8 @@ export default function SettingsPage() {
                   Spreadsheet Export (CSV)
                 </h3>
                 <p className="text-[11px] text-slate-500 mt-1">
-                  Export your student register and payments to open in Microsoft Excel or Google Sheets.
+                  Export your student register and payments to open in Microsoft Excel or Google
+                  Sheets.
                 </p>
               </div>
               <button
@@ -261,12 +266,7 @@ export default function SettingsPage() {
               <label className="cursor-pointer px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl transition inline-flex items-center gap-2">
                 <Upload className="w-3.5 h-3.5" />
                 <span>Choose Backup File</span>
-                <input
-                  type="file"
-                  accept=".json"
-                  onChange={handleImportFile}
-                  className="hidden"
-                />
+                <input type="file" accept=".json" onChange={handleImportFile} className="hidden" />
               </label>
 
               {importStatus === 'success' && (

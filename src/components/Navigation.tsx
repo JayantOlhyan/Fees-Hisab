@@ -3,14 +3,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { 
-  LayoutDashboard, 
-  Users, 
-  Receipt, 
-  BarChart3, 
-  Settings,
-  Plus
-} from 'lucide-react';
+import { LayoutDashboard, Users, Receipt, BarChart3, Settings, Plus } from 'lucide-react';
 import Image from 'next/image';
 
 interface NavigationProps {
@@ -35,12 +28,7 @@ export const Navigation: React.FC<NavigationProps> = ({ onOpenAddStudent }) => {
         {/* Brand Header */}
         <div className="p-5 border-b border-slate-100 flex items-center gap-3">
           <div className="relative w-10 h-10 rounded-xl overflow-hidden shadow-sm flex-shrink-0 bg-emerald-50">
-            <Image 
-              src="/logo.jpg" 
-              alt="Fees Hisab Logo" 
-              fill 
-              className="object-cover"
-            />
+            <Image src="/logo.jpg" alt="Fees Hisab Logo" fill className="object-cover" />
           </div>
           <div>
             <h1 className="font-bold text-xl text-slate-900 tracking-tight flex items-center gap-1.5">
@@ -66,7 +54,8 @@ export const Navigation: React.FC<NavigationProps> = ({ onOpenAddStudent }) => {
         {/* Nav Links */}
         <nav className="flex-1 px-3 py-2 space-y-1">
           {navItems.map((item) => {
-            const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+            const isActive =
+              pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
             const Icon = item.icon;
             return (
               <Link
@@ -94,7 +83,8 @@ export const Navigation: React.FC<NavigationProps> = ({ onOpenAddStudent }) => {
       {/* Mobile Bottom Navigation Bar */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 px-2 py-1.5 flex items-center justify-around shadow-lg">
         {navItems.map((item) => {
-          const isActive = pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
+          const isActive =
+            pathname === item.href || (item.href !== '/' && pathname.startsWith(item.href));
           const Icon = item.icon;
           return (
             <Link

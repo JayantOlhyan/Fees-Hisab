@@ -2,24 +2,24 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { 
-  BarChart3, 
-  TrendingUp, 
-  AlertCircle, 
-  Users, 
+import {
+  BarChart3,
+  TrendingUp,
+  AlertCircle,
+  Users,
   Calendar,
   CheckCircle,
   Clock,
-  ArrowRight
+  ArrowRight,
 } from 'lucide-react';
 import { Navigation } from '@/components/Navigation';
 import { StatusBadge } from '@/components/StatusBadge';
-import { 
-  getStudents, 
-  getFeeRecords, 
+import {
+  getStudents,
+  getFeeRecords,
   getPayments,
   ensureFeeRecordsForMonth,
-  getYearMonthString 
+  getYearMonthString,
 } from '@/lib/storage';
 import { formatINR, formatMonthName, formatDateReadable } from '@/lib/utils';
 import { Student, FeeRecord, Payment } from '@/types';
@@ -63,7 +63,8 @@ export default function ReportsPage() {
     });
 
     const totalOutstanding = Math.max(0, totalExpected - totalCollected);
-    const collectionPercentage = totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0;
+    const collectionPercentage =
+      totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0;
 
     return {
       totalExpected,
@@ -99,19 +100,24 @@ export default function ReportsPage() {
 
   // Report 3: Historical Totals across All Active Students
   const studentHistoricalSummary = useMemo(() => {
-    return activeStudents.map((st) => {
-      const recs = feeRecords.filter((r) => r.studentId === st.id);
-      const lifetimePaid = recs.reduce((acc, r) => acc + r.amountPaid, 0);
-      const currentDue = recs.reduce((acc, r) => acc + Math.max(0, r.amountDue - r.amountPaid), 0);
-      const paidMonths = recs.filter((r) => r.status === 'PAID').length;
+    return activeStudents
+      .map((st) => {
+        const recs = feeRecords.filter((r) => r.studentId === st.id);
+        const lifetimePaid = recs.reduce((acc, r) => acc + r.amountPaid, 0);
+        const currentDue = recs.reduce(
+          (acc, r) => acc + Math.max(0, r.amountDue - r.amountPaid),
+          0
+        );
+        const paidMonths = recs.filter((r) => r.status === 'PAID').length;
 
-      return {
-        student: st,
-        lifetimePaid,
-        currentDue,
-        paidMonths,
-      };
-    }).sort((a, b) => b.lifetimePaid - a.lifetimePaid);
+        return {
+          student: st,
+          lifetimePaid,
+          currentDue,
+          paidMonths,
+        };
+      })
+      .sort((a, b) => b.lifetimePaid - a.lifetimePaid);
   }, [activeStudents, feeRecords]);
 
   if (!mounted) return null;
@@ -124,7 +130,9 @@ export default function ReportsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-200/80">
           <div>
-            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">Reports & Insights</h1>
+            <h1 className="text-2xl font-extrabold text-slate-900 tracking-tight">
+              Reports & Insights
+            </h1>
             <p className="text-xs text-slate-500 mt-0.5">
               Clear financial hisab for collections and pending dues
             </p>
@@ -162,7 +170,9 @@ export default function ReportsPage() {
             </div>
 
             <div className="bg-white p-4 rounded-2xl border border-slate-200/80 shadow-2xs">
-              <span className="text-[11px] text-emerald-600 font-medium block">Total Collected</span>
+              <span className="text-[11px] text-emerald-600 font-medium block">
+                Total Collected
+              </span>
               <span className="text-lg sm:text-xl font-extrabold text-emerald-600 mt-0.5 block">
                 {formatINR(monthlySummary.totalCollected)}
               </span>
@@ -197,7 +207,8 @@ export default function ReportsPage() {
               <span>Outstanding Fees Breakdown</span>
             </h2>
             <span className="text-xs font-semibold text-slate-500">
-              Total Outstanding: <strong className="text-red-600">{formatINR(monthlySummary.totalOutstanding)}</strong>
+              Total Outstanding:{' '}
+              <strong className="text-red-600">{formatINR(monthlySummary.totalOutstanding)}</strong>
             </span>
           </div>
 
@@ -230,7 +241,9 @@ export default function ReportsPage() {
                           )}
                         </td>
                         <td className="py-3 px-4 text-slate-600">{student.class}</td>
-                        <td className="py-3 px-4 text-slate-700">{formatINR(student.monthlyFee)}</td>
+                        <td className="py-3 px-4 text-slate-700">
+                          {formatINR(student.monthlyFee)}
+                        </td>
                         <td className="py-3 px-4 text-right font-black text-red-600 text-sm">
                           {formatINR(outstanding)}
                         </td>
@@ -271,30 +284,32 @@ export default function ReportsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-xs">
-                  {studentHistoricalSummary.map(({ student, lifetimePaid, currentDue, paidMonths }) => (
-                    <tr key={student.id} className="hover:bg-slate-50/60 transition">
-                      <td className="py-3 px-4">
-                        <Link
-                          href={`/students/${student.id}`}
-                          className="font-bold text-slate-900 hover:text-emerald-600 transition"
-                        >
-                          {student.name}
-                        </Link>
-                      </td>
-                      <td className="py-3 px-4 text-slate-600">{student.class}</td>
-                      <td className="py-3 px-4 text-right font-medium text-slate-700">
-                        {paidMonths} {paidMonths === 1 ? 'month' : 'months'}
-                      </td>
-                      <td className="py-3 px-4 text-right font-bold text-emerald-600">
-                        {formatINR(lifetimePaid)}
-                      </td>
-                      <td className="py-3 px-4 text-right font-black">
-                        <span className={currentDue > 0 ? 'text-red-600' : 'text-slate-400'}>
-                          {formatINR(currentDue)}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                  {studentHistoricalSummary.map(
+                    ({ student, lifetimePaid, currentDue, paidMonths }) => (
+                      <tr key={student.id} className="hover:bg-slate-50/60 transition">
+                        <td className="py-3 px-4">
+                          <Link
+                            href={`/students/${student.id}`}
+                            className="font-bold text-slate-900 hover:text-emerald-600 transition"
+                          >
+                            {student.name}
+                          </Link>
+                        </td>
+                        <td className="py-3 px-4 text-slate-600">{student.class}</td>
+                        <td className="py-3 px-4 text-right font-medium text-slate-700">
+                          {paidMonths} {paidMonths === 1 ? 'month' : 'months'}
+                        </td>
+                        <td className="py-3 px-4 text-right font-bold text-emerald-600">
+                          {formatINR(lifetimePaid)}
+                        </td>
+                        <td className="py-3 px-4 text-right font-black">
+                          <span className={currentDue > 0 ? 'text-red-600' : 'text-slate-400'}>
+                            {formatINR(currentDue)}
+                          </span>
+                        </td>
+                      </tr>
+                    )
+                  )}
                 </tbody>
               </table>
             </div>

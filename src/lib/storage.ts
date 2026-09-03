@@ -10,13 +10,13 @@ const STORAGE_KEYS = {
 
 export interface AppSettings {
   teacherName: string;
-  salutation: 'Ma\'am' | 'Sir' | 'Teacher';
+  salutation: "Ma'am" | 'Sir' | 'Teacher';
   currency: string;
 }
 
 const defaultSettings: AppSettings = {
   teacherName: 'Sunita Sharma',
-  salutation: 'Ma\'am',
+  salutation: "Ma'am",
   currency: '₹',
 };
 
@@ -191,7 +191,7 @@ export function ensureFeeRecordsForMonth(billingMonth: string): FeeRecord[] {
       // Calculate due date for student
       const dueDay = Math.min(student.feeDueDay, 28);
       const dueDate = `${year}-${String(month).padStart(2, '0')}-${String(dueDay).padStart(2, '0')}`;
-      
+
       const status = calculateFeeStatus({
         amountDue: student.monthlyFee,
         amountPaid: 0,

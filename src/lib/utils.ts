@@ -20,10 +20,10 @@ export function formatDateReadable(dateStr: string): string {
   if (!dateStr) return '';
   const date = new Date(dateStr);
   if (isNaN(date.getTime())) return dateStr;
-  
+
   const today = new Date();
   const todayStr = today.toISOString().split('T')[0];
-  
+
   const yesterday = new Date(today);
   yesterday.setDate(today.getDate() - 1);
   const yesterdayStr = yesterday.toISOString().split('T')[0];

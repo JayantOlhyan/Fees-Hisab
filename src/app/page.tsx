@@ -1,27 +1,27 @@
 'use client';
 
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  Users, 
-  TrendingUp, 
-  AlertCircle, 
-  ChevronRight, 
-  Calendar, 
+import {
+  Users,
+  TrendingUp,
+  AlertCircle,
+  ChevronRight,
+  Calendar,
   ArrowRight,
-  Plus
+  Plus,
 } from 'lucide-react';
 import Link from 'next/link';
 import { Navigation } from '@/components/Navigation';
 import { RecordPaymentModal } from '@/components/RecordPaymentModal';
 import { AddStudentModal } from '@/components/AddStudentModal';
 import { StatusBadge } from '@/components/StatusBadge';
-import { 
-  getStudents, 
-  getFeeRecords, 
-  getPayments, 
-  getSettings, 
+import {
+  getStudents,
+  getFeeRecords,
+  getPayments,
+  getSettings,
   ensureFeeRecordsForMonth,
-  getYearMonthString 
+  getYearMonthString,
 } from '@/lib/storage';
 import { formatINR, formatMonthName, formatDateReadable } from '@/lib/utils';
 import { Student, FeeRecord, FeeRecordWithStudent } from '@/types';
@@ -101,7 +101,12 @@ export default function Dashboard() {
       const student = activeStudents.find((s) => s.id === record.studentId);
       if (student) {
         const remaining = Math.max(0, record.amountDue - record.amountPaid);
-        if (remaining > 0 && (record.status === 'OVERDUE' || record.status === 'DUE' || record.status === 'PARTIALLY_PAID')) {
+        if (
+          remaining > 0 &&
+          (record.status === 'OVERDUE' ||
+            record.status === 'DUE' ||
+            record.status === 'PARTIALLY_PAID')
+        ) {
           list.push({
             ...record,
             student,
@@ -223,7 +228,9 @@ export default function Dashboard() {
               <span className="text-2xl sm:text-3xl font-extrabold text-emerald-600 tracking-tight">
                 {formatINR(metrics.collectedThisMonth)}
               </span>
-              <span className="block text-[11px] text-emerald-700/80 mt-0.5">In {formatMonthName(currentMonth)}</span>
+              <span className="block text-[11px] text-emerald-700/80 mt-0.5">
+                In {formatMonthName(currentMonth)}
+              </span>
             </div>
           </div>
 
@@ -293,7 +300,9 @@ export default function Dashboard() {
                   ✓
                 </div>
                 <h3 className="font-bold text-slate-800 text-sm">All fees are on track!</h3>
-                <p className="text-xs text-slate-500 mt-1">No overdue or pending fees for this month.</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  No overdue or pending fees for this month.
+                </p>
               </div>
             ) : (
               <div className="space-y-2.5">
@@ -307,7 +316,7 @@ export default function Dashboard() {
                         {item.student.name.charAt(0)}
                       </div>
                       <div className="min-w-0">
-                        <Link 
+                        <Link
                           href={`/students/${item.student.id}`}
                           className="font-bold text-sm sm:text-base text-slate-900 hover:text-emerald-600 transition truncate block"
                         >
@@ -346,9 +355,7 @@ export default function Dashboard() {
           {/* Right Column: Recent Payments */}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <h2 className="font-bold text-base sm:text-lg text-slate-900">
-                Recent Payments
-              </h2>
+              <h2 className="font-bold text-base sm:text-lg text-slate-900">Recent Payments</h2>
               <Link
                 href="/fees"
                 className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 flex items-center gap-0.5"
@@ -365,7 +372,10 @@ export default function Dashboard() {
                 </div>
               ) : (
                 recentPaymentsWithDetails.map((pay) => (
-                  <div key={pay.id} className="py-3 first:pt-1 last:pb-1 flex items-center justify-between">
+                  <div
+                    key={pay.id}
+                    className="py-3 first:pt-1 last:pb-1 flex items-center justify-between"
+                  >
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-700 font-bold text-xs flex items-center justify-center">
                         {pay.studentName.charAt(0)}
@@ -399,7 +409,8 @@ export default function Dashboard() {
                 <div>
                   <h4 className="font-bold text-emerald-950">Pure Hisab Tip</h4>
                   <p className="text-slate-600 mt-0.5 leading-relaxed">
-                    Fees for upcoming months are calculated automatically using each student’s due date. No manual work needed every month.
+                    Fees for upcoming months are calculated automatically using each student’s due
+                    date. No manual work needed every month.
                   </p>
                 </div>
               </div>

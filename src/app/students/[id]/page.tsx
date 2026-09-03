@@ -3,30 +3,30 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { 
-  ArrowLeft, 
-  Phone, 
-  School, 
-  Calendar, 
-  BookOpen, 
-  User, 
-  FileText, 
-  Archive, 
+import {
+  ArrowLeft,
+  Phone,
+  School,
+  Calendar,
+  BookOpen,
+  User,
+  FileText,
+  Archive,
   CheckCircle,
   PlusCircle,
   Clock,
   Trash2,
-  Edit2
+  Edit2,
 } from 'lucide-react';
 import { Navigation } from '@/components/Navigation';
 import { StatusBadge } from '@/components/StatusBadge';
 import { RecordPaymentModal } from '@/components/RecordPaymentModal';
-import { 
-  getStudents, 
-  getFeeRecords, 
-  archiveStudent, 
+import {
+  getStudents,
+  getFeeRecords,
+  archiveStudent,
   unarchiveStudent,
-  updateStudent
+  updateStudent,
 } from '@/lib/storage';
 import { formatINR, formatMonthName, formatDateReadable } from '@/lib/utils';
 import { Student, FeeRecord } from '@/types';
@@ -114,7 +114,10 @@ export default function StudentDetailPage() {
     if (!student) return;
     const fee = parseFloat(editFee);
     const dueDay = parseInt(editDueDay, 10);
-    const subjects = editSubjects.split(',').map((s) => s.trim()).filter(Boolean);
+    const subjects = editSubjects
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean);
 
     updateStudent(student.id, {
       name: editName.trim(),
@@ -144,7 +147,10 @@ export default function StudentDetailPage() {
       <div className="flex min-h-screen bg-slate-50 items-center justify-center">
         <div className="text-center">
           <p className="text-sm font-semibold text-slate-600">Student not found</p>
-          <Link href="/students" className="mt-2 text-xs text-emerald-600 font-bold hover:underline inline-block">
+          <Link
+            href="/students"
+            className="mt-2 text-xs text-emerald-600 font-bold hover:underline inline-block"
+          >
             ← Back to Students
           </Link>
         </div>
@@ -223,31 +229,46 @@ export default function StudentDetailPage() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-5 border-t border-slate-100">
             <div className="bg-slate-50/70 p-3 rounded-2xl border border-slate-100">
               <span className="text-[11px] text-slate-400 font-medium block">Monthly Fee</span>
-              <span className="text-base font-extrabold text-slate-900">{formatINR(student.monthlyFee)}</span>
+              <span className="text-base font-extrabold text-slate-900">
+                {formatINR(student.monthlyFee)}
+              </span>
             </div>
 
             <div className="bg-slate-50/70 p-3 rounded-2xl border border-slate-100">
               <span className="text-[11px] text-slate-400 font-medium block">Fee Due Day</span>
-              <span className="text-base font-extrabold text-slate-900">{student.feeDueDay}th of month</span>
+              <span className="text-base font-extrabold text-slate-900">
+                {student.feeDueDay}th of month
+              </span>
             </div>
 
             <div className="bg-slate-50/70 p-3 rounded-2xl border border-slate-100">
-              <span className="text-[11px] text-slate-400 font-medium block">Current Outstanding</span>
-              <span className={`text-base font-extrabold ${totalOutstanding > 0 ? 'text-red-600' : 'text-emerald-600'}`}>
+              <span className="text-[11px] text-slate-400 font-medium block">
+                Current Outstanding
+              </span>
+              <span
+                className={`text-base font-extrabold ${totalOutstanding > 0 ? 'text-red-600' : 'text-emerald-600'}`}
+              >
                 {formatINR(totalOutstanding)}
               </span>
             </div>
 
             <div className="bg-slate-50/70 p-3 rounded-2xl border border-slate-100">
-              <span className="text-[11px] text-slate-400 font-medium block">Total Paid Historically</span>
-              <span className="text-base font-extrabold text-emerald-600">{formatINR(totalLifetimePaid)}</span>
+              <span className="text-[11px] text-slate-400 font-medium block">
+                Total Paid Historically
+              </span>
+              <span className="text-base font-extrabold text-emerald-600">
+                {formatINR(totalLifetimePaid)}
+              </span>
             </div>
           </div>
         </div>
 
         {/* Edit Form if open */}
         {isEditing && (
-          <form onSubmit={handleSaveEdit} className="mt-5 bg-white rounded-3xl border border-emerald-200 p-5 shadow-sm space-y-4">
+          <form
+            onSubmit={handleSaveEdit}
+            className="mt-5 bg-white rounded-3xl border border-emerald-200 p-5 shadow-sm space-y-4"
+          >
             <h3 className="font-bold text-sm text-slate-900 flex items-center gap-2">
               <Edit2 className="w-4 h-4 text-emerald-600" />
               Edit Student Details
@@ -308,7 +329,9 @@ export default function StudentDetailPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Monthly Fee (₹)</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Monthly Fee (₹)
+                </label>
                 <input
                   type="number"
                   value={editFee}
@@ -318,7 +341,9 @@ export default function StudentDetailPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Due Day (1-31)</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Due Day (1-31)
+                </label>
                 <input
                   type="number"
                   min="1"
@@ -332,7 +357,9 @@ export default function StudentDetailPage() {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
-                <label className="block text-xs font-bold text-slate-700 mb-1">Subjects (comma separated)</label>
+                <label className="block text-xs font-bold text-slate-700 mb-1">
+                  Subjects (comma separated)
+                </label>
                 <input
                   type="text"
                   value={editSubjects}
@@ -388,7 +415,9 @@ export default function StudentDetailPage() {
               </div>
               <div className="flex justify-between py-1">
                 <span className="text-slate-500">Joining Date</span>
-                <span className="font-semibold text-slate-800">{formatDateReadable(student.joiningDate)}</span>
+                <span className="font-semibold text-slate-800">
+                  {formatDateReadable(student.joiningDate)}
+                </span>
               </div>
             </div>
           </div>
@@ -421,8 +450,12 @@ export default function StudentDetailPage() {
         <div className="mt-6">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h2 className="font-bold text-base sm:text-lg text-slate-900">Complete Fee History</h2>
-              <p className="text-xs text-slate-500">Record of all monthly billing cycles and payments</p>
+              <h2 className="font-bold text-base sm:text-lg text-slate-900">
+                Complete Fee History
+              </h2>
+              <p className="text-xs text-slate-500">
+                Record of all monthly billing cycles and payments
+              </p>
             </div>
           </div>
 
