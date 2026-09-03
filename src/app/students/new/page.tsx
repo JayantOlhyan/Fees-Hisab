@@ -7,11 +7,8 @@ import { requireAuth } from '@/lib/auth/session';
 import { redirect } from 'next/navigation';
 
 export default async function AddStudentPage() {
-  try {
-    await requireAuth();
-  } catch {
-    redirect('/login');
-  }
+  await requireAuth();
+
 
   return (
     <div className="flex min-h-screen bg-slate-50">
