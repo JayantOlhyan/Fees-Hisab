@@ -1,68 +1,116 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { StudentService } from '@/services/students/student.service';
-import { StudentCreateInput, StudentUpdateInput } from '@/lib/validations';
-import { sanitizeError, AuthenticationError } from '@/lib/errors';
-import { requireAuth } from '@/lib/auth/session';
-import { Student } from '@prisma/client';
+import { createStudent, getStudents, getStudentById, updateStudent, archiveStudentInNotion } from '@/lib/notion/service';
+import { Student } from '@/types';
 
 export type ActionResult<T> =
-  | { success: true; student: T }
-  | { success: false; error: string; code: string; details?: unknown };
+  | { success: true; data: T }
+  | { success: false; error: string };
 
-export async function createStudentAction(
-  input: StudentCreateInput
-): Promise<ActionResult<Student>> {
+export async function createStudentAction(input: {
+  name: string;
+  guardianName?: string;
+  phone?: string;
+  className?: string;
+  school?: string;
+  subjects?: string[];
+  monthlyFee: number;
+  feeDueDay: number;
+  joiningDate: string;
+  notes?: string;
+}): Promise<ActionResult<Student>> {
   try {
-    const session = await requireAuth();
-    const student = await StudentService.createStudent(session.userId, input);
+    const student = await createStudent({
+      name: input.name,
+      guardianName: input.guardianName,
+      phone: input.phone,
+      class: input.className,
+      school: input.school,
+      subjects: input.subjects,
+      joiningDate: input.joiningDate,
+      monthlyFee: input.monthlyFee,
+      feeDueDay: input.feeDueDay,
+      notes: input.notes,
+    });
     revalidatePath('/students');
-    return { success: true, student };
-  } catch (error) {
-    const sanitized = sanitizeError(error);
-    return { success: false, ...sanitized };
+    return { success: true, data: student };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to create student' };
+  }
+}
+
+export async function getStudentsAction(includeArchived = false): Promise<ActionResult<Student[]>> {
+  try {
+    const students = await getStudents(includeArchived);
+    return { success: true, data: students };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to fetch students' };
+  }
+}
+
+export async function getStudentByIdAction(id: string): Promise<ActionResult<Student>> {
+  try {
+    const student = await getStudentById(id);
+    return { success: true, data: student };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Student not found' };
   }
 }
 
 export async function updateStudentAction(
-  studentId: string,
-  input: StudentUpdateInput
+  id: string,
+  input: Partial<{
+    name: string;
+    guardianName: string;
+    phone: string;
+    className: string;
+    school: string;
+    subjects: string[];
+    monthlyFee: number;
+    feeDueDay: number;
+    joiningDate: string;
+    notes: string;
+  }>
 ): Promise<ActionResult<Student>> {
   try {
-    const session = await requireAuth();
-    const student = await StudentService.updateStudent(session.userId, studentId, input);
+    const student = await updateStudent(id, {
+      name: input.name,
+      guardianName: input.guardianName,
+      phone: input.phone,
+      class: input.className,
+      school: input.school,
+      subjects: input.subjects,
+      joiningDate: input.joiningDate,
+      monthlyFee: input.monthlyFee,
+      feeDueDay: input.feeDueDay,
+      notes: input.notes,
+    });
     revalidatePath('/students');
-    revalidatePath(`/students/${studentId}`);
-    return { success: true, student };
-  } catch (error) {
-    const sanitized = sanitizeError(error);
-    return { success: false, ...sanitized };
+    revalidatePath(`/students/${id}`);
+    return { success: true, data: student };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to update student' };
   }
 }
 
-export async function archiveStudentAction(studentId: string): Promise<ActionResult<Student>> {
+export async function archiveStudentAction(id: string): Promise<ActionResult<void>> {
   try {
-    const session = await requireAuth();
-    const student = await StudentService.archiveStudent(session.userId, studentId);
+    await archiveStudentInNotion(id);
     revalidatePath('/students');
-    revalidatePath(`/students/${studentId}`);
-    return { success: true, student };
-  } catch (error) {
-    const sanitized = sanitizeError(error);
-    return { success: false, ...sanitized };
+    return { success: true, data: undefined };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to archive student' };
   }
 }
 
-export async function restoreStudentAction(studentId: string): Promise<ActionResult<Student>> {
+export async function restoreStudentAction(id: string): Promise<ActionResult<Student>> {
   try {
-    const session = await requireAuth();
-    const student = await StudentService.activateStudent(session.userId, studentId);
+    const student = await updateStudent(id, { status: 'ACTIVE' });
     revalidatePath('/students');
-    revalidatePath(`/students/${studentId}`);
-    return { success: true, student };
-  } catch (error) {
-    const sanitized = sanitizeError(error);
-    return { success: false, ...sanitized };
+    revalidatePath(`/students/${id}`);
+    return { success: true, data: student };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to restore student' };
   }
 }
