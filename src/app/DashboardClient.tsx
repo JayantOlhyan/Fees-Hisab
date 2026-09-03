@@ -62,7 +62,7 @@ export const DashboardClient: React.FC<DashboardClientProps> = ({ summary }) => 
     try {
       const res = await generateCurrentPeriodFeesAction(summary.billingYear, summary.billingMonth);
       if (res.success) {
-        setToastMessage(`Generated fees for ${res.data.createdCount} students!`);
+        setToastMessage(`Generated fees for ${res.data.created} students!`);
         router.refresh();
       } else {
         setToastMessage(res.error || 'Failed to generate fees');
