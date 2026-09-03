@@ -1,10 +1,8 @@
 import React from 'react';
-import { notFound, redirect } from 'next/navigation';
+import { notFound } from 'next/navigation';
 import { Navigation } from '@/components/Navigation';
 import { StudentDetailClient, SerializedPayment } from './StudentDetailClient';
-import { StudentService } from '@/services/students/student.service';
-import { PaymentService } from '@/services/payments/payment.service';
-import { requireAuth } from '@/lib/auth/session';
+import { getStudentById, getPayments } from '@/lib/notion/service';
 
 interface StudentDetailPageProps {
   params: Promise<{ id: string }>;
@@ -12,12 +10,10 @@ interface StudentDetailPageProps {
 
 export default async function StudentDetailPage({ params }: StudentDetailPageProps) {
   const { id } = await params;
-  const session = await requireAuth();
-
 
   let student;
   try {
-    student = await StudentService.getStudentById(session.userId, id);
+    student = await getStudentById(id);
   } catch {
     notFound();
   }
@@ -28,14 +24,13 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
 
   let payments: SerializedPayment[] = [];
   try {
-    const rawPayments = await PaymentService.getPaymentsForStudent(session.userId, id);
-
+    const rawPayments = await getPayments(id);
     payments = rawPayments.map((p) => ({
       id: p.id,
-      amount: p.amount.toString(),
-      paymentDate: p.paymentDate.toISOString(),
+      amount: String(p.amount),
+      paymentDate: p.paymentDate,
       paymentMethod: p.paymentMethod,
-      notes: p.notes,
+      notes: p.notes ?? null,
       feeRecordId: p.feeRecordId,
     }));
   } catch {
@@ -45,16 +40,16 @@ export default async function StudentDetailPage({ params }: StudentDetailPagePro
   const serializedStudent = {
     id: student.id,
     name: student.name,
-    guardianName: student.guardianName,
-    phone: student.phone,
-    className: student.className,
-    school: student.school,
+    guardianName: student.guardianName ?? null,
+    phone: student.phone ?? null,
+    className: student.class ?? null,
+    school: student.school ?? null,
     subjects: student.subjects,
-    joiningDate: student.joiningDate.toISOString(),
-    monthlyFee: student.monthlyFee.toString(),
+    joiningDate: student.joiningDate,
+    monthlyFee: String(student.monthlyFee),
     feeDueDay: student.feeDueDay,
     status: student.status,
-    notes: student.notes,
+    notes: student.notes ?? null,
   };
 
   return (
