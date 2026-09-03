@@ -18,7 +18,7 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
   const [name, setName] = useState('');
   const [guardianName, setGuardianName] = useState('');
   const [phone, setPhone] = useState('');
-  const [studentClass, setStudentClass] = useState('Class 8');
+  const [studentClass, setStudentClass] = useState('');
   const [school, setSchool] = useState('');
   const [subjectsStr, setSubjectsStr] = useState('Mathematics, Science');
   const [monthlyFee, setMonthlyFee] = useState('2000');
@@ -180,7 +180,7 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
                   required
                   value={studentClass}
                   onChange={(e) => setStudentClass(e.target.value)}
-                  placeholder="e.g. Class 8"
+                  placeholder="e.g. 10, 12, 8"
                   className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-emerald-600 outline-none transition"
                 />
               </div>

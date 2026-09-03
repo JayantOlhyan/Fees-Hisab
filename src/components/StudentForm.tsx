@@ -179,7 +179,7 @@ export const StudentForm: React.FC<StudentFormProps> = ({ initialData, isEdit = 
               type="text"
               value={className}
               onChange={(e) => setClassName(e.target.value)}
-              placeholder="e.g. 10th, Class 8"
+              placeholder="e.g. 10, 12, 8"
               className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-emerald-600 outline-none transition"
             />
           </div>
