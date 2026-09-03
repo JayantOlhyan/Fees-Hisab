@@ -25,7 +25,7 @@ export interface StudentListItem {
   name: string;
   guardianName: string | null;
   phone: string | null;
-  className: string;
+  className: string | null;
   school: string | null;
   subjects: string[];
   monthlyFee: string;
@@ -71,7 +71,7 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({ initialStudents 
         const matchesName = s.name.toLowerCase().includes(q);
         const matchesGuardian = s.guardianName?.toLowerCase().includes(q);
         const matchesPhone = s.phone?.includes(q);
-        const matchesClass = s.className.toLowerCase().includes(q);
+        const matchesClass = s.className?.toLowerCase().includes(q);
         const matchesSchool = s.school?.toLowerCase().includes(q);
 
         if (!matchesName && !matchesGuardian && !matchesPhone && !matchesClass && !matchesSchool) {
@@ -94,6 +94,7 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({ initialStudents 
 
         <Link
           href="/students/new"
+          aria-label="Add Student"
           className="flex items-center gap-2 py-2.5 px-4 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs sm:text-sm font-bold rounded-xl shadow-xs transition"
         >
           <Plus className="w-4 h-4" />
