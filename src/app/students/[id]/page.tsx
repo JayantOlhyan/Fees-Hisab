@@ -3,7 +3,8 @@ import { notFound } from 'next/navigation';
 import { Navigation } from '@/components/Navigation';
 import { StudentDetailClient } from './StudentDetailClient';
 import { StudentService } from '@/services/students/student.service';
-import { getOrCreateTeacherSession } from '@/actions/student.actions';
+import { requireAuth } from '@/lib/auth/session';
+import { redirect } from 'next/navigation';
 
 interface StudentDetailPageProps {
   params: Promise<{ id: string }>;
@@ -11,7 +12,12 @@ interface StudentDetailPageProps {
 
 export default async function StudentDetailPage({ params }: StudentDetailPageProps) {
   const { id } = await params;
-  const session = await getOrCreateTeacherSession();
+  let session;
+  try {
+    session = await requireAuth();
+  } catch {
+    redirect('/login');
+  }
 
   let student;
   try {
