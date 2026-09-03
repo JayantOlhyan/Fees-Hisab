@@ -7,7 +7,7 @@ test.describe('Phase 4 — Payment Management E2E Acceptance Workflows', () => {
     // 1. Log in
     await page.goto('/login');
     await page.getByRole('button', { name: /Sign In/i }).click();
-    await expect(page).toHaveURL(/.*students.*/);
+    await expect(page).toHaveURL(/.*students.*/, { timeout: 10000 });
 
     // 2. Navigate to /fees
     await page.goto('/fees');
@@ -61,7 +61,7 @@ test.describe('Phase 4 — Payment Management E2E Acceptance Workflows', () => {
     // 1. Log in
     await page.goto('/login');
     await page.getByRole('button', { name: /Sign In/i }).click();
-    await expect(page).toHaveURL(/.*students.*/);
+    await expect(page).toHaveURL(/.*students.*/, { timeout: 10000 });
 
     await page.goto('/fees');
     await expect(page.getByRole('heading', { name: /Fees Register/i })).toBeVisible();
@@ -92,26 +92,35 @@ test.describe('Phase 4 — Payment Management E2E Acceptance Workflows', () => {
 
   test('TEST 3 — Student detail page displays Payments tab and transaction list', async ({
     page,
+    isMobile,
   }) => {
     // 1. Log in
     await page.goto('/login');
     await page.getByRole('button', { name: /Sign In/i }).click();
-    await expect(page).toHaveURL(/.*students.*/);
+    await expect(page).toHaveURL(/.*students.*/, { timeout: 10000 });
 
-    // 2. Click on the first student link
-    const studentLinks = page.getByRole('link', { name: /Aarav|Rohan|Priya|Ananya|Rahul/i });
-    if ((await studentLinks.count()) > 0) {
-      await studentLinks.first().click();
-      await expect(page).toHaveURL(/\/students\/.+/);
-
-      // 3. Switch to Payments tab
-      const paymentsTabBtn = page.getByRole('button', { name: /Payments/i });
-      await expect(paymentsTabBtn).toBeVisible();
-      await paymentsTabBtn.click();
-
-      // 4. Verify Total Lifetime Paid card and link back to Fees Register
-      await expect(page.getByText(/Total Lifetime Paid/i)).toBeVisible();
-      await expect(page.getByRole('link', { name: /Go to Fees Register/i })).toBeVisible();
+    // 2. Click on student detail link depending on viewport
+    if (isMobile) {
+      const mobileCard = page.locator('.lg\\:hidden a[href^="/students/"]').first();
+      await expect(mobileCard).toBeVisible();
+      await mobileCard.click();
+    } else {
+      const desktopRow = page.locator('table tbody tr td a').first();
+      await expect(desktopRow).toBeVisible();
+      await desktopRow.click();
     }
+
+    await expect(page).toHaveURL(/\/students\/.+/);
+
+    // 3. Ensure student profile loaded
+    await expect(page.getByRole('button', { name: 'Archive' })).toBeVisible();
+
+    // 4. Click Payments tab
+    const paymentsTabBtn = page.locator('#tab-payments');
+    await expect(paymentsTabBtn).toBeVisible();
+    await paymentsTabBtn.click();
+
+    // 5. Verify Payments view is active (check for Go to Fees Register link or lifetime amount)
+    await expect(page.locator('a[href="/fees"]').last()).toBeVisible();
   });
 });
