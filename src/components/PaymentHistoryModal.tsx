@@ -3,8 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { X, Receipt, Loader2, Calendar, FileText } from 'lucide-react';
 import { formatINR, formatDateReadable, formatMonthName } from '@/lib/utils';
-import { getPaymentsForFeeAction } from '@/actions/payment.actions';
-import { Payment } from '@prisma/client';
+import { getPaymentsForStudentAction } from '@/actions/payment.actions';
+import { Payment } from '@/types';
 
 interface PaymentHistoryModalProps {
   isOpen: boolean;
@@ -44,7 +44,7 @@ export const PaymentHistoryModal: React.FC<PaymentHistoryModalProps> = ({
     if (isOpen && feeRecordId) {
       setIsLoading(true);
       setError('');
-      getPaymentsForFeeAction(feeRecordId)
+      getPaymentsForStudentAction(feeRecordId)
         .then((res) => {
           if (res.success) {
             setPayments(res.data);
