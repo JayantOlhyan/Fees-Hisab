@@ -14,12 +14,8 @@ interface EditStudentPageProps {
 
 export default async function EditStudentPage({ params }: EditStudentPageProps) {
   const { id } = await params;
-  let session;
-  try {
-    session = await requireAuth();
-  } catch {
-    redirect('/login');
-  }
+  const session = await requireAuth();
+
 
   let student;
   try {
