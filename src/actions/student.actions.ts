@@ -114,3 +114,16 @@ export async function restoreStudentAction(id: string): Promise<ActionResult<Stu
     return { success: false, error: err.message || 'Failed to restore student' };
   }
 }
+
+export async function exportAllNotionDataAction() {
+  try {
+    const { getStudents, getFeeRecords, getPayments } = await import('@/lib/notion/service');
+    const students = await getStudents(true);
+    const feeRecords = await getFeeRecords();
+    const payments = await getPayments();
+    return { success: true, data: { students, feeRecords, payments } };
+  } catch (err: any) {
+    return { success: false, error: err.message || 'Failed to export Notion data' };
+  }
+}
+

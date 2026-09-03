@@ -50,23 +50,29 @@ export default function SettingsPage() {
     setTimeout(() => setSaveMessage(''), 3000);
   };
 
-  const handleExportJSON = () => {
-    const dataStr = exportAllData();
+  const handleExportJSON = async () => {
+    const { exportAllNotionDataAction } = await import('@/actions/student.actions');
+    const result = await exportAllNotionDataAction();
+    const dataObj = result.success ? result.data : {};
+    const dataStr = JSON.stringify(dataObj, null, 2);
     const blob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `fees_hisab_backup_${new Date().toISOString().split('T')[0]}.json`;
+    a.download = `fees_hisab_notion_backup_${new Date().toISOString().split('T')[0]}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
 
-  const handleExportCSV = () => {
-    const students = getStudents();
-    const feeRecords = getFeeRecords();
-    const payments = getPayments();
+  const handleExportCSV = async () => {
+    const { exportAllNotionDataAction } = await import('@/actions/student.actions');
+    const result = await exportAllNotionDataAction();
+    if (!result.success || !result.data) {
+      alert('Failed to fetch Notion data for CSV export');
+      return;
+    }
+    const { students, feeRecords, payments } = result.data;
 
-    // Students CSV
     let csv = 'Student Name,Class,Phone,Monthly Fee,Fee Due Day,Status\n';
     students.forEach((s) => {
       csv += `"${s.name}","${s.class}","${s.phone || ''}",${s.monthlyFee},${s.feeDueDay},"${s.status}"\n`;
@@ -86,7 +92,7 @@ export default function SettingsPage() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `fees_hisab_records_${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `fees_hisab_notion_records_${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
