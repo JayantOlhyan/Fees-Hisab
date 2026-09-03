@@ -1,5 +1,5 @@
 import { Decimal } from '@prisma/client/runtime/library';
-import { FeeStatus } from '@prisma/client';
+import { FeeStatus } from '@/types';
 
 export type MonetaryInput = number | string | Decimal;
 
