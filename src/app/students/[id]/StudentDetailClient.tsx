@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { archiveStudentAction, restoreStudentAction } from '@/actions/student.actions';
 import { formatINR, formatDateReadable } from '@/lib/utils';
-import { PaymentMethod } from '@prisma/client';
+import { PaymentMethod } from '@/types';
 
 export interface SerializedPayment {
   id: string;
