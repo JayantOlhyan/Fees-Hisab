@@ -17,6 +17,32 @@ export interface FeeRecordWithComputed {
   computedStatus: string;
 }
 
+export interface BulkFeeGenerationResult {
+  billingYear: number;
+  billingMonth: number;
+  totalActiveStudents: number;
+  createdCount: number;
+  alreadyExistingCount: number;
+  skippedPreJoiningCount: number;
+  errors: Array<{ studentId: string; studentName: string; error: string }>;
+}
+
+export interface FeeRecordWithStudentAndPayment {
+  id: string;
+  studentId: string;
+  studentName: string;
+  guardianName: string | null;
+  phone: string | null;
+  className: string | null;
+  billingYear: number;
+  billingMonth: number;
+  amountDue: string;
+  dueDate: string;
+  totalPaid: string;
+  outstanding: string;
+  status: FeeStatus;
+}
+
 export class FeeService {
   /**
    * Ensures a FeeRecord exists for a student and billing month/year.
@@ -58,22 +84,7 @@ export class FeeService {
       );
     }
 
-    // 3. Check for existing fee record (Idempotency)
-    const existing = await prisma.feeRecord.findUnique({
-      where: {
-        student_billing_period_unique: {
-          studentId,
-          billingYear,
-          billingMonth,
-        },
-      },
-    });
-
-    if (existing) {
-      return existing;
-    }
-
-    // 4. Calculate clamped due date & initial status
+    // 3. Calculate clamped due date
     const dueDate = calculateDueDate(billingYear, billingMonth, student.feeDueDay);
     const initialStatus = calculateFeeStatus({
       amountDue: student.monthlyFee,
@@ -81,9 +92,19 @@ export class FeeService {
       dueDate,
     });
 
-    // 5. Create fee record with snapshot of student's current monthlyFee
-    return prisma.feeRecord.create({
-      data: {
+    // 4. Atomic upsert to ensure strict concurrency idempotency
+    return prisma.feeRecord.upsert({
+      where: {
+        student_billing_period_unique: {
+          studentId,
+          billingYear,
+          billingMonth,
+        },
+      },
+      update: {
+        // Do NOT mutate amountDue or historical snapshot!
+      },
+      create: {
         studentId,
         billingYear,
         billingMonth,
@@ -95,7 +116,204 @@ export class FeeService {
   }
 
   /**
-   * Retrieves a fee record along with payments and verified ownership
+   * Generates fees for all active students belonging to the teacher for a given period.
+   * Defaults to current calendar year and month (calculated server-side).
+   * Archived students are strictly skipped.
+   */
+  static async generateFeesForTeacher(
+    userId: string,
+    year?: number,
+    month?: number
+  ): Promise<BulkFeeGenerationResult> {
+    const now = new Date();
+    const targetYear = year ?? now.getFullYear();
+    const targetMonth = month ?? now.getMonth() + 1;
+
+    if (targetMonth < 1 || targetMonth > 12) {
+      throw new ValidationError(`Invalid billing month: ${targetMonth}. Must be 1 to 12`);
+    }
+
+    const activeStudents = await prisma.student.findMany({
+      where: {
+        userId,
+        status: 'ACTIVE',
+      },
+      orderBy: { name: 'asc' },
+    });
+
+    const result: BulkFeeGenerationResult = {
+      billingYear: targetYear,
+      billingMonth: targetMonth,
+      totalActiveStudents: activeStudents.length,
+      createdCount: 0,
+      alreadyExistingCount: 0,
+      skippedPreJoiningCount: 0,
+      errors: [],
+    };
+
+    for (const student of activeStudents) {
+      try {
+        const joiningDate = new Date(student.joiningDate);
+        const joiningYear = joiningDate.getUTCFullYear();
+        const joiningMonth = joiningDate.getUTCMonth() + 1;
+
+        if (
+          targetYear < joiningYear ||
+          (targetYear === joiningYear && targetMonth < joiningMonth)
+        ) {
+          result.skippedPreJoiningCount++;
+          continue;
+        }
+
+        // Check if existing record
+        const existing = await prisma.feeRecord.findUnique({
+          where: {
+            student_billing_period_unique: {
+              studentId: student.id,
+              billingYear: targetYear,
+              billingMonth: targetMonth,
+            },
+          },
+        });
+
+        if (existing) {
+          result.alreadyExistingCount++;
+          continue;
+        }
+
+        const dueDate = calculateDueDate(targetYear, targetMonth, student.feeDueDay);
+        const initialStatus = calculateFeeStatus({
+          amountDue: student.monthlyFee,
+          totalPaid: new Decimal(0),
+          dueDate,
+        });
+
+        await prisma.feeRecord.create({
+          data: {
+            studentId: student.id,
+            billingYear: targetYear,
+            billingMonth: targetMonth,
+            amountDue: student.monthlyFee,
+            dueDate,
+            status: initialStatus,
+          },
+        });
+
+        result.createdCount++;
+      } catch (err) {
+        result.errors.push({
+          studentId: student.id,
+          studentName: student.name,
+          error: (err as Error).message,
+        });
+      }
+    }
+
+    return result;
+  }
+
+  /**
+   * Retrieves all FeeRecords for a teacher in a specific billing year & month.
+   * Computes outstanding, totalPaid, and current status server-side.
+   */
+  static async getFeeRecordsForPeriod(
+    userId: string,
+    year: number,
+    month: number
+  ): Promise<FeeRecordWithStudentAndPayment[]> {
+    const records = await prisma.feeRecord.findMany({
+      where: {
+        billingYear: year,
+        billingMonth: month,
+        student: {
+          userId,
+        },
+      },
+      include: {
+        student: true,
+        payments: true,
+      },
+      orderBy: {
+        student: {
+          name: 'asc',
+        },
+      },
+    });
+
+    const now = new Date();
+
+    return records.map((rec) => {
+      const state = this.computeFeeRecordState(rec, now);
+      return {
+        id: rec.id,
+        studentId: rec.studentId,
+        studentName: rec.student.name,
+        guardianName: rec.student.guardianName,
+        phone: rec.student.phone,
+        className: rec.student.className,
+        billingYear: rec.billingYear,
+        billingMonth: rec.billingMonth,
+        amountDue: rec.amountDue.toString(),
+        dueDate: rec.dueDate.toISOString(),
+        totalPaid: state.totalPaid.toString(),
+        outstanding: state.outstanding.toString(),
+        status: state.computedStatus as FeeStatus,
+      };
+    });
+  }
+
+  /**
+   * Retrieves all FeeRecords for a specific student, enforcing teacher ownership
+   */
+  static async getStudentFeeRecords(
+    userId: string,
+    studentId: string
+  ): Promise<FeeRecordWithStudentAndPayment[]> {
+    const student = await prisma.student.findUnique({
+      where: { id: studentId },
+    });
+
+    if (!student) {
+      throw new NotFoundError(`Student ${studentId} not found`);
+    }
+
+    if (student.userId !== userId) {
+      throw new AuthorizationError('Unauthorized access to student');
+    }
+
+    const records = await prisma.feeRecord.findMany({
+      where: { studentId },
+      include: {
+        student: true,
+        payments: true,
+      },
+      orderBy: [{ billingYear: 'desc' }, { billingMonth: 'desc' }],
+    });
+
+    const now = new Date();
+
+    return records.map((rec) => {
+      const state = this.computeFeeRecordState(rec, now);
+      return {
+        id: rec.id,
+        studentId: rec.studentId,
+        studentName: rec.student.name,
+        guardianName: rec.student.guardianName,
+        phone: rec.student.phone,
+        className: rec.student.className,
+        billingYear: rec.billingYear,
+        billingMonth: rec.billingMonth,
+        amountDue: rec.amountDue.toString(),
+        dueDate: rec.dueDate.toISOString(),
+        totalPaid: state.totalPaid.toString(),
+        outstanding: state.outstanding.toString(),
+        status: state.computedStatus as FeeStatus,
+      };
+    });
+  }
+
+  /**
+   * Retrieves a single fee record along with payments and verified ownership
    */
   static async getFeeRecordById(
     userId: string,
