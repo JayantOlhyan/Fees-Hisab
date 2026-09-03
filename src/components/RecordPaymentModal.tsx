@@ -89,12 +89,19 @@ export const RecordPaymentModal: React.FC<RecordPaymentModalProps> = ({
 
     setIsSubmitting(true);
     try {
+      const methodMap: Record<string, string> = {
+        CASH: 'Cash',
+        UPI: 'UPI',
+        BANK_TRANSFER: 'Bank Transfer',
+        OTHER: 'Other',
+      };
       const result = await recordPaymentAction({
         feeRecordId: feeRecord.id,
         studentId: feeRecord.studentId,
+        studentName: feeRecord.studentName,
         amount: parsedAmount,
         paymentDate,
-        paymentMethod,
+        paymentMethod: (methodMap[paymentMethod] || 'Cash') as any,
         notes: notes.trim() || undefined,
       });
 
