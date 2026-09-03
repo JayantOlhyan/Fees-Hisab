@@ -2,7 +2,7 @@ import { prisma } from '@/lib/db/prisma';
 import { calculateFeeStatus, calculateOutstanding } from '@/lib/utils/financial';
 import { FeeStatus, PaymentMethod } from '@prisma/client';
 import { Decimal } from '@prisma/client/runtime/library';
-import { initialStudents, initialFeeRecords, initialPayments } from '@/data/seedData';
+
 
 export interface DashboardNeedsAttentionItem {
   id: string;
@@ -218,110 +218,22 @@ export class DashboardService {
         recentPayments,
       };
     } catch {
-      // Fallback for environment when Postgres daemon is not active
-      const activeStudents = initialStudents.filter((s) => s.status === 'ACTIVE');
-      const yearMonthStr = `${year}-${String(month).padStart(2, '0')}`;
-      const periodRecords = initialFeeRecords.filter((r) => r.billingMonth === yearMonthStr);
-
-      let collectedSum = 0;
-      let outstandingSum = 0;
-      let overdueCount = 0;
-      let paidCount = 0;
-      let partiallyPaidCount = 0;
-      let dueCount = 0;
-      let upcomingCount = 0;
-
-      const needsAttentionCandidates: DashboardNeedsAttentionItem[] = [];
-
-      periodRecords.forEach((record) => {
-        const student = initialStudents.find((s) => s.id === record.studentId);
-        const recordPayments = initialPayments.filter((p) => p.feeRecordId === record.id);
-        const totalPaid = recordPayments.reduce((sum, p) => sum + p.amount, record.amountPaid || 0);
-        const outstanding = Math.max(0, record.amountDue - totalPaid);
-
-        collectedSum += totalPaid;
-        outstandingSum += outstanding;
-
-        const computedStatus: FeeStatus =
-          (record.status as FeeStatus) ||
-          calculateFeeStatus({
-            amountDue: record.amountDue,
-            totalPaid,
-            dueDate: new Date(record.dueDate),
-          });
-
-        switch (computedStatus) {
-          case 'PAID':
-            paidCount += 1;
-            break;
-          case 'PARTIALLY_PAID':
-            partiallyPaidCount += 1;
-            break;
-          case 'OVERDUE':
-            overdueCount += 1;
-            break;
-          case 'DUE':
-            dueCount += 1;
-            break;
-          default:
-            upcomingCount += 1;
-            break;
-        }
-
-        if (
-          (computedStatus === 'OVERDUE' ||
-            computedStatus === 'PARTIALLY_PAID' ||
-            computedStatus === 'DUE') &&
-          student?.status === 'ACTIVE'
-        ) {
-          needsAttentionCandidates.push({
-            id: record.id,
-            studentId: record.studentId,
-            studentName: student ? student.name : 'Student',
-            guardianName: student?.guardianName || null,
-            phone: student?.phone || null,
-            className: student?.class || null,
-            billingYear: year,
-            billingMonth: month,
-            amountDue: record.amountDue.toString(),
-            totalPaid: totalPaid.toString(),
-            outstanding: outstanding.toString(),
-            dueDate: new Date(record.dueDate).toISOString(),
-            status: computedStatus,
-          });
-        }
-      });
-
-      const recentPayments: DashboardRecentPaymentItem[] = initialPayments.slice(0, 5).map((p) => {
-        const st = initialStudents.find((s) => s.id === p.studentId);
-        return {
-          id: p.id,
-          studentId: p.studentId,
-          studentName: st ? st.name : 'Student',
-          className: st ? st.class : null,
-          amount: p.amount.toString(),
-          paymentDate: new Date(p.paymentDate).toISOString(),
-          paymentMethod: (p.paymentMethod as PaymentMethod) || 'UPI',
-          notes: p.notes || null,
-          feeRecordId: p.feeRecordId,
-        };
-      });
-
       return {
         billingYear: year,
         billingMonth: month,
-        activeStudentsCount: activeStudents.length,
-        collectedThisMonth: collectedSum.toString(),
-        outstandingThisMonth: outstandingSum.toString(),
-        overdueCount,
-        paidCount,
-        partiallyPaidCount,
-        dueCount,
-        upcomingCount,
-        hasFeeRecords: periodRecords.length > 0,
-        needsAttention: needsAttentionCandidates,
-        recentPayments,
+        activeStudentsCount: 0,
+        collectedThisMonth: '0',
+        outstandingThisMonth: '0',
+        overdueCount: 0,
+        paidCount: 0,
+        partiallyPaidCount: 0,
+        dueCount: 0,
+        upcomingCount: 0,
+        hasFeeRecords: false,
+        needsAttention: [],
+        recentPayments: [],
       };
     }
   }
 }
+
