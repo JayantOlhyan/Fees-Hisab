@@ -176,13 +176,13 @@ export const StudentDetailClient: React.FC<StudentDetailClientProps> = ({ studen
           <span className="px-4 py-1.5 rounded-xl text-xs font-bold bg-emerald-600 text-white shadow-2xs cursor-default">
             Details
           </span>
-          <span
-            className="px-4 py-1.5 rounded-xl text-xs font-semibold text-slate-400 bg-slate-50 border border-slate-200 cursor-not-allowed flex items-center gap-1"
-            title="Available in Phase 3"
+          <Link
+            href="/fees"
+            className="px-4 py-1.5 rounded-xl text-xs font-semibold text-slate-700 bg-slate-50 hover:bg-slate-100 border border-slate-200 transition flex items-center gap-1.5"
           >
-            <Receipt className="w-3.5 h-3.5" />
-            <span>Fees (Phase 3)</span>
-          </span>
+            <Receipt className="w-3.5 h-3.5 text-emerald-600" />
+            <span>Fees Register</span>
+          </Link>
           <span
             className="px-4 py-1.5 rounded-xl text-xs font-semibold text-slate-400 bg-slate-50 border border-slate-200 cursor-not-allowed flex items-center gap-1"
             title="Available in Phase 4"
