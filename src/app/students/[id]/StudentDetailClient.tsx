@@ -30,7 +30,7 @@ interface StudentDetailClientProps {
     name: string;
     guardianName: string | null;
     phone: string | null;
-    className: string;
+    className: string | null;
     school: string | null;
     subjects: string[];
     joiningDate: string;
