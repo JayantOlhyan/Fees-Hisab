@@ -24,7 +24,8 @@ export function getSettings(): AppSettings {
   if (typeof window === 'undefined') return defaultSettings;
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.SETTINGS);
-    return raw ? JSON.parse(raw) : defaultSettings;
+    if (!raw || raw === 'undefined' || raw === 'null') return defaultSettings;
+    return JSON.parse(raw);
   } catch {
     return defaultSettings;
   }
@@ -37,16 +38,17 @@ export function saveSettings(settings: AppSettings): void {
 
 // Student CRUD
 export function getStudents(): Student[] {
-  if (typeof window === 'undefined') return initialStudents;
+  if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.STUDENTS);
-    if (!raw) {
-      localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(initialStudents));
-      return initialStudents;
+    if (!raw || raw === 'undefined' || raw === 'null') {
+      localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify([]));
+      return [];
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
-    return initialStudents;
+    return [];
   }
 }
 
@@ -99,16 +101,17 @@ export function unarchiveStudent(id: string): Student | null {
 
 // Fee Records CRUD
 export function getFeeRecords(): FeeRecord[] {
-  if (typeof window === 'undefined') return initialFeeRecords;
+  if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.FEE_RECORDS);
-    if (!raw) {
-      localStorage.setItem(STORAGE_KEYS.FEE_RECORDS, JSON.stringify(initialFeeRecords));
-      return initialFeeRecords;
+    if (!raw || raw === 'undefined' || raw === 'null') {
+      localStorage.setItem(STORAGE_KEYS.FEE_RECORDS, JSON.stringify([]));
+      return [];
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
-    return initialFeeRecords;
+    return [];
   }
 }
 
@@ -119,18 +122,20 @@ export function saveFeeRecords(records: FeeRecord[]): void {
 
 // Payments CRUD
 export function getPayments(): Payment[] {
-  if (typeof window === 'undefined') return initialPayments;
+  if (typeof window === 'undefined') return [];
   try {
     const raw = localStorage.getItem(STORAGE_KEYS.PAYMENTS);
-    if (!raw) {
-      localStorage.setItem(STORAGE_KEYS.PAYMENTS, JSON.stringify(initialPayments));
-      return initialPayments;
+    if (!raw || raw === 'undefined' || raw === 'null') {
+      localStorage.setItem(STORAGE_KEYS.PAYMENTS, JSON.stringify([]));
+      return [];
     }
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
-    return initialPayments;
+    return [];
   }
 }
+
 
 export function savePayments(payments: Payment[]): void {
   if (typeof window === 'undefined') return;
@@ -317,8 +322,9 @@ export function importAllData(jsonData: string): boolean {
 }
 
 export function resetToSeedData() {
-  saveStudents(initialStudents);
-  saveFeeRecords(initialFeeRecords);
-  savePayments(initialPayments);
+  saveStudents([]);
+  saveFeeRecords([]);
+  savePayments([]);
   saveSettings(defaultSettings);
 }
+
