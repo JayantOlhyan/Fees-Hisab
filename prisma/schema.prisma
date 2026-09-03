@@ -49,7 +49,7 @@ model Student {
   name         String
   guardianName String?
   phone        String?
-  className    String
+  className    String?
   school       String?
   subjects     String[]
   joiningDate  DateTime      @db.Date
