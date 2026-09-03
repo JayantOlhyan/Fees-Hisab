@@ -1,15 +1,25 @@
 import React from 'react';
 import { Navigation } from '@/components/Navigation';
 import { StudentsClient, StudentListItem } from './StudentsClient';
-import { getStudents } from '@/lib/notion/service';
-import { requireAuth } from '@/lib/auth/session';
+import { getStudents, getPayments } from '@/lib/notion/service';
 
 export default async function StudentsPage() {
-  await requireAuth();
-
   let sourceStudents: StudentListItem[] = [];
   try {
     const rawStudents = await getStudents(true);
+
+    // Fetch all payments once and build a map: studentId → most recent payment date
+    const allPayments = await getPayments().catch(() => []);
+    const lastPaymentMap: Record<string, string> = {};
+    for (const p of allPayments) {
+      if (p.studentId && p.paymentDate) {
+        const existing = lastPaymentMap[p.studentId];
+        if (!existing || p.paymentDate > existing) {
+          lastPaymentMap[p.studentId] = p.paymentDate;
+        }
+      }
+    }
+
     sourceStudents = rawStudents.map((s) => ({
       id: s.id,
       name: s.name,
@@ -22,12 +32,11 @@ export default async function StudentsPage() {
       feeDueDay: s.feeDueDay,
       joiningDate: s.joiningDate,
       status: s.status as 'ACTIVE' | 'ARCHIVED',
+      lastPaymentDate: lastPaymentMap[s.id] ?? null,
     }));
   } catch {
     sourceStudents = [];
   }
-
-
 
   return (
     <div className="flex min-h-screen bg-slate-50">

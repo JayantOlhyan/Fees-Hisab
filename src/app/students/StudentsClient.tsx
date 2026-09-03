@@ -32,6 +32,7 @@ export interface StudentListItem {
   feeDueDay: number;
   joiningDate: string;
   status: 'ACTIVE' | 'ARCHIVED';
+  lastPaymentDate: string | null;
 }
 
 interface StudentsClientProps {
@@ -197,6 +198,7 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({ initialStudents 
                 <th className="py-3 px-4 text-right">Monthly Fee</th>
                 <th className="py-3 px-4 text-center">Due Day</th>
                 <th className="py-3 px-4">Phone</th>
+                <th className="py-3 px-4 text-center">Last Payment</th>
                 <th className="py-3 px-4 text-center">Status</th>
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
@@ -241,6 +243,16 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({ initialStudents 
 
                   <td className="py-3.5 px-4 text-slate-600 font-mono text-[11px]">
                     {st.phone || '—'}
+                  </td>
+
+                  <td className="py-3.5 px-4 text-center">
+                    {st.lastPaymentDate ? (
+                      <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-lg">
+                        {formatDateReadable(st.lastPaymentDate)}
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-slate-400">No payments yet</span>
+                    )}
                   </td>
 
                   <td className="py-3.5 px-4 text-center">
@@ -318,6 +330,11 @@ export const StudentsClient: React.FC<StudentsClientProps> = ({ initialStudents 
                     <p className="text-xs text-slate-500 truncate mt-0.5">
                       {st.className} · {formatINR(Number(st.monthlyFee))} · Due {st.feeDueDay}
                     </p>
+                    {st.lastPaymentDate && (
+                      <p className="text-[11px] text-emerald-600 font-medium mt-0.5">
+                        Last paid: {formatDateReadable(st.lastPaymentDate)}
+                      </p>
+                    )}
                   </div>
                 </div>
 
