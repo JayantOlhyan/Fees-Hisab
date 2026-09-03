@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import { StatusBadge } from '@/components/StatusBadge';
 import { formatINR, formatDateReadable } from '@/lib/utils';
-import { FeeStatus } from '@prisma/client';
+import { FeeStatus } from '@/types';
 import { generateCurrentPeriodFeesAction } from '@/actions/fee.actions';
 import { RecordPaymentModal, FeeRecordPaymentTarget } from '@/components/RecordPaymentModal';
 import { PaymentHistoryModal } from '@/components/PaymentHistoryModal';
@@ -110,9 +110,9 @@ export const FeesClient: React.FC<FeesClientProps> = ({
     try {
       const res = await generateCurrentPeriodFeesAction(year, month);
       if (res.success) {
-        const { createdCount, alreadyExistingCount, skippedPreJoiningCount } = res.data;
+        const { created, existing } = res.data;
         setGenerationFeedback(
-          `Generated ${createdCount} new fee record(s). (${alreadyExistingCount} already exist, ${skippedPreJoiningCount} pre-joining).`
+          `Generated ${created} new fee record(s). (${existing} already existed).`
         );
         router.refresh();
       } else {
