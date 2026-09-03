@@ -32,7 +32,7 @@ describe('Fees Hisab Foundation & Architecture Tests', () => {
   it('validates student draft schema with Zod', () => {
     const validStudent = studentCreateSchema.safeParse({
       name: 'Rahul Sharma',
-      class: 'Class 8',
+      className: 'Class 8',
       subjects: ['Mathematics', 'Science'],
       monthlyFee: 2000,
       feeDueDay: 5,
@@ -42,7 +42,7 @@ describe('Fees Hisab Foundation & Architecture Tests', () => {
 
     const negativeFeeStudent = studentCreateSchema.safeParse({
       name: 'Rahul Sharma',
-      class: 'Class 8',
+      className: 'Class 8',
       subjects: ['Mathematics'],
       monthlyFee: -500,
       feeDueDay: 5,
