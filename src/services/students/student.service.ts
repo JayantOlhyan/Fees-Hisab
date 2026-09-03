@@ -36,18 +36,19 @@ export class StudentService {
       data: {
         userId,
         name,
-        guardianName: (guardianName ?? null) as string | null,
-        phone: (phone ?? null) as string | null,
-        className: (className ?? null) as string | null,
-        school: (school ?? null) as string | null,
+        guardianName: guardianName ?? '',
+        phone: phone ?? '',
+        className: className ?? '',
+        school: school ?? '',
         subjects: subjects || [],
         joiningDate: new Date(joiningDate),
         monthlyFee: toDecimal(monthlyFee),
         feeDueDay,
         status: 'ACTIVE',
-        notes: (notes ?? null) as string | null,
+        notes: notes ?? '',
       },
     });
+
 
   }
 
