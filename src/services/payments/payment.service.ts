@@ -36,12 +36,18 @@ export class PaymentService {
 
     // Execute atomic transaction
     return prisma.$transaction(async (tx) => {
-      // 1. Fetch fee record with student and existing payments
+      // 1. Lock the fee record row for UPDATE to prevent concurrent race conditions
+      // This serializes simultaneous requests for the same fee record in PostgreSQL.
+      await tx.$queryRaw`SELECT id FROM fee_records WHERE id = ${feeRecordId} FOR UPDATE`;
+
+      // 2. Fetch fee record with student and existing payments
       const feeRecord = await tx.feeRecord.findUnique({
         where: { id: feeRecordId },
         include: {
           student: true,
-          payments: true,
+          payments: {
+            orderBy: { paymentDate: 'asc' },
+          },
         },
       });
 
@@ -49,7 +55,7 @@ export class PaymentService {
         throw new NotFoundError(`Fee record ${feeRecordId} not found`);
       }
 
-      // 2. Enforce student relationship and teacher ownership
+      // 3. Enforce student relationship and teacher ownership
       if (feeRecord.studentId !== studentId) {
         throw new ValidationError('Fee record does not belong to the specified student');
       }
@@ -60,7 +66,7 @@ export class PaymentService {
         );
       }
 
-      // 3. Calculate current total paid and outstanding
+      // 4. Calculate current total paid and outstanding
       const currentPaid = feeRecord.payments.reduce(
         (acc, p) => acc.plus(toDecimal(p.amount)),
         new Decimal(0)
@@ -68,14 +74,14 @@ export class PaymentService {
 
       const currentOutstanding = calculateOutstanding(feeRecord.amountDue, currentPaid);
 
-      // 4. Overpayment check
+      // 5. Overpayment check
       if (paymentAmount.greaterThan(currentOutstanding)) {
         throw new ValidationError(
           `Overpayment rejected: payment amount ₹${paymentAmount.toString()} exceeds outstanding amount ₹${currentOutstanding.toString()}`
         );
       }
 
-      // 5. Create payment transaction
+      // 6. Create payment transaction (immutable)
       const payment = await tx.payment.create({
         data: {
           studentId,
@@ -87,7 +93,7 @@ export class PaymentService {
         },
       });
 
-      // 6. Recalculate new total paid and resulting status
+      // 7. Recalculate new total paid and resulting status
       const newTotalPaid = currentPaid.plus(paymentAmount);
       const newOutstanding = calculateOutstanding(feeRecord.amountDue, newTotalPaid);
       const newStatus = calculateFeeStatus({
@@ -96,7 +102,7 @@ export class PaymentService {
         dueDate: feeRecord.dueDate,
       });
 
-      // 7. Update fee record status
+      // 8. Update fee record status
       const updatedFeeRecord = await tx.feeRecord.update({
         where: { id: feeRecordId },
         data: {
@@ -154,7 +160,45 @@ export class PaymentService {
 
     return prisma.payment.findMany({
       where: { feeRecordId },
-      orderBy: { paymentDate: 'asc' },
+      orderBy: { paymentDate: 'desc' },
+    });
+  }
+
+  /**
+   * Retrieves payment history for the teacher across all students
+   */
+  static async getPaymentHistory(
+    userId: string,
+    filters?: { studentId?: string; feeRecordId?: string }
+  ): Promise<
+    (Payment & {
+      student: { name: string; className: string | null };
+      feeRecord: { billingYear: number; billingMonth: number };
+    })[]
+  > {
+    return prisma.payment.findMany({
+      where: {
+        student: {
+          userId,
+          ...(filters?.studentId ? { id: filters.studentId } : {}),
+        },
+        ...(filters?.feeRecordId ? { feeRecordId: filters.feeRecordId } : {}),
+      },
+      include: {
+        student: {
+          select: {
+            name: true,
+            className: true,
+          },
+        },
+        feeRecord: {
+          select: {
+            billingYear: true,
+            billingMonth: true,
+          },
+        },
+      },
+      orderBy: { paymentDate: 'desc' },
     });
   }
 }
