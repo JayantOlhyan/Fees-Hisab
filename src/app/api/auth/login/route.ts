@@ -8,24 +8,31 @@ const SESSION_COOKIE_NAME = 'fees_hisab_session';
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => ({}));
-    const email = body.email || 'demo.teacher@fees-hisab.in';
+    const usernameInput = body.username || body.email || 'Babita';
 
     let teacherId = 'teacher-demo-uuid-001';
-    let teacherName = 'Sunita Sharma';
+    let teacherName = 'Babita';
     let teacherSalutation = "Ma'am";
+    const email = usernameInput.includes('@') ? usernameInput : 'babita@fees-hisab.in';
 
     // Attempt DB lookup if Postgres connection is available
     try {
       let teacher = await prisma.user.findFirst({
-        where: { email },
+        where: {
+          OR: [{ email }, { name: { contains: 'Babita', mode: 'insensitive' } }],
+        },
       });
+
+      if (!teacher) {
+        teacher = await prisma.user.findFirst();
+      }
 
       if (!teacher) {
         teacher = await prisma.user.create({
           data: {
-            email,
+            email: 'babita@fees-hisab.in',
             passwordHash: 'seeded_teacher_password_hash',
-            name: 'Sunita Sharma',
+            name: 'Babita',
             salutation: "Ma'am",
           },
         });
