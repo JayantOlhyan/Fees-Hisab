@@ -5,7 +5,8 @@ import { ArrowLeft, UserCheck } from 'lucide-react';
 import { Navigation } from '@/components/Navigation';
 import { StudentForm } from '@/components/StudentForm';
 import { StudentService } from '@/services/students/student.service';
-import { getOrCreateTeacherSession } from '@/actions/student.actions';
+import { requireAuth } from '@/lib/auth/session';
+import { redirect } from 'next/navigation';
 
 interface EditStudentPageProps {
   params: Promise<{ id: string }>;
@@ -13,7 +14,12 @@ interface EditStudentPageProps {
 
 export default async function EditStudentPage({ params }: EditStudentPageProps) {
   const { id } = await params;
-  const session = await getOrCreateTeacherSession();
+  let session;
+  try {
+    session = await requireAuth();
+  } catch {
+    redirect('/login');
+  }
 
   let student;
   try {
