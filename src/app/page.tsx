@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { Navigation } from '@/components/Navigation';
-import { RecordPaymentModal } from '@/components/RecordPaymentModal';
+import { RecordPaymentModal, FeeRecordPaymentTarget } from '@/components/RecordPaymentModal';
 import { AddStudentModal } from '@/components/AddStudentModal';
 import { StatusBadge } from '@/components/StatusBadge';
 import {
@@ -423,8 +423,21 @@ export default function Dashboard() {
       <RecordPaymentModal
         isOpen={isRecordModalOpen}
         onClose={() => setIsRecordModalOpen(false)}
-        feeRecord={selectedFeeRecord}
-        student={selectedStudent}
+        feeRecord={
+          selectedFeeRecord && selectedStudent
+            ? {
+                id: selectedFeeRecord.id,
+                studentId: selectedStudent.id,
+                studentName: selectedStudent.name,
+                className: selectedStudent.class,
+                billingMonth: parseInt(selectedFeeRecord.billingMonth.split('-')[1], 10) || 9,
+                billingYear: parseInt(selectedFeeRecord.billingMonth.split('-')[0], 10) || 2026,
+                amountDue: selectedFeeRecord.amountDue,
+                totalPaid: selectedFeeRecord.amountPaid,
+                outstanding: Math.max(0, selectedFeeRecord.amountDue - selectedFeeRecord.amountPaid),
+              }
+            : null
+        }
         onPaymentSuccess={loadData}
       />
 
