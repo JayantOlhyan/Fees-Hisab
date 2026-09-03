@@ -3,8 +3,16 @@ import Link from 'next/link';
 import { ArrowLeft, UserPlus } from 'lucide-react';
 import { Navigation } from '@/components/Navigation';
 import { StudentForm } from '@/components/StudentForm';
+import { requireAuth } from '@/lib/auth/session';
+import { redirect } from 'next/navigation';
 
-export default function AddStudentPage() {
+export default async function AddStudentPage() {
+  try {
+    await requireAuth();
+  } catch {
+    redirect('/login');
+  }
+
   return (
     <div className="flex min-h-screen bg-slate-50">
       <Navigation />
