@@ -140,8 +140,10 @@ export const AddStudentModal: React.FC<AddStudentModalProps> = ({
                 <label className="block text-xs font-bold text-slate-700 mb-1">Contact Phone</label>
                 <input
                   type="tel"
+                  inputMode="numeric"
+                  maxLength={10}
                   value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
+                  onChange={(e) => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
                   placeholder="e.g. 9876543210"
                   className="w-full px-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-900 focus:bg-white focus:border-emerald-600 outline-none transition"
                 />
