@@ -1,5 +1,17 @@
 import { z } from 'zod';
 
+// Allowed Subject Taxonomy according to Phase 2 contract
+export const ALLOWED_SUBJECTS = [
+  'Mathematics',
+  'Science',
+  'English',
+  'Social Science',
+  'Hindi',
+  'Other',
+] as const;
+
+export type AllowedSubject = (typeof ALLOWED_SUBJECTS)[number];
+
 // Authentication schemas
 export const loginSchema = z.object({
   email: z.string().trim().email('Please enter a valid email address'),
@@ -17,9 +29,14 @@ export const registerSchema = z.object({
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 
-// Student schemas
+// Student schemas: Align with Phase 2 Specification
+// Required: name, monthlyFee, joiningDate, feeDueDay
+// Optional: guardianName, phone, className, school, subjects, notes
 export const studentCreateSchema = z.object({
   name: z.string().trim().min(1, 'Student name is required').max(100),
+  monthlyFee: z.number().positive('Monthly fee must be greater than 0'),
+  joiningDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Joining date must be in YYYY-MM-DD format'),
+  feeDueDay: z.number().int().min(1).max(31, 'Due day must be between 1 and 31'),
   guardianName: z.string().trim().max(100).optional().nullable(),
   phone: z
     .string()
@@ -28,12 +45,9 @@ export const studentCreateSchema = z.object({
     .optional()
     .or(z.literal(''))
     .nullable(),
-  className: z.string().trim().min(1, 'Class is required'),
+  className: z.string().trim().max(50).optional().nullable(),
   school: z.string().trim().max(100).optional().nullable(),
-  subjects: z.array(z.string().trim().min(1)).min(1, 'At least one subject is required'),
-  monthlyFee: z.number().positive('Monthly fee must be greater than 0'),
-  feeDueDay: z.number().int().min(1).max(31, 'Due day must be between 1 and 31'),
-  joiningDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Joining date must be in YYYY-MM-DD format'),
+  subjects: z.array(z.string().trim().min(1)).optional().default([]),
   notes: z.string().trim().max(500).optional().nullable(),
 });
 
